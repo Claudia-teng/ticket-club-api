@@ -1,6 +1,7 @@
 const { getAreaIds, getSeatsByAreaIds } = require('../models/area.model');
 
 async function getAreaBySessionId(req, res) {
+  // todo - validate session id
   const sessionId = req.params.id;
 
   let areas = await getAreaIds(sessionId);
