@@ -1,0 +1,19 @@
+env:
+  node: true
+  commonjs: true
+  es6: true
+  mocha: true
+extends: ['eslint:recommended', 'plugin:prettier/recommended']
+globals:
+  Atomics: readonly
+  SharedArrayBuffer: readonly
+parserOptions:
+  ecmaVersion: 2018
+ignorePatterns: ['*.ejs']
+rules:
+  no-console: off
+  no-unused-vars: ['error', { 'vars': 'all', 'args': 'none' }]
+  linebreak-style: ['error', 'unix']
+  quotes: ['error', 'single']
+  semi: ['error', 'always']
+  no-trailing-spaces: ['error']

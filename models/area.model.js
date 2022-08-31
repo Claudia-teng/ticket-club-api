@@ -1,0 +1,26 @@
+const pool = require('../service/db');
+
+async function getAreaIds(sessionId) {
+  let sql = `SELECT a.id, a.name, p.price FROM session s
+    JOIN venue v on v.id = s.venue_id 
+    JOIN area a on v.id = a.venue_id
+    JOIN price p on a.id = p.area_id
+    WHERE s.id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId]);
+  return rows;
+}
+
+async function getSeatsByAreaIds(areaIds, sessionId) {
+  let sql = `
+    SELECT count(ss.id) AS seats, s.area_id FROM seat_status ss
+    JOIN seat s ON ss.seat_id = s.id
+    WHERE s.area_id IN (${areaIds}) && ss.session_id = ? && ss.status_id = 1
+    GROUP BY s.area_id`;
+  const [rows] = await pool.execute(sql, [sessionId]);
+  return rows;
+}
+
+module.exports = {
+  getAreaIds,
+  getSeatsByAreaIds,
+};
