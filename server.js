@@ -19,7 +19,7 @@ io.on('connection', (socket) => {
   // });
 
   socket.on('seatChange', async (data) => {
-    socket.emit('seatChange', data);
+    io.emit('seatChange', data);
   });
 });
 
