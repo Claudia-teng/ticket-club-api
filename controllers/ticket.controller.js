@@ -76,6 +76,7 @@ async function lockSeats(req, res) {
 
 async function placeOrder(req, res) {
   // todo - validations
+
   const sessionId = req.body.sessionId;
   const seatIds = req.body.seatIds;
   try {

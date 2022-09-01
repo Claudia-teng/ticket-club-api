@@ -1,22 +1,28 @@
 require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-const cors = require('cors');
-const api = require('./routes/api');
-const PORT = process.env.SERVER_PORT;
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+const app = require('./app');
+const httpServer = createServer(app);
+const PORT = process.env.SERVER_PORT || 3000;
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:5000'],
+  },
+});
 
-app.use(express.json());
-app.use(cors());
-app.use('/', api);
+io.on('connection', (socket) => {
+  // let chatroom;
+  // socket.on('joinRoom', ({ room }) => {
+  //   console.log('in room');
+  //   chatroom = room;
+  //   socket.join(room);
+  // });
 
-app.use(function (req, res) {
-  res.status(404).json({
-    error: 'Page not found.',
+  socket.on('seatChange', async (data) => {
+    socket.emit('seatChange', data);
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}...`);
 });
