@@ -65,6 +65,13 @@ async function getSeatInfo(seatId) {
   return rows[0];
 }
 
+async function changeSeatsToEmpty(sessionId, seatIds) {
+  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let sql = `UPDATE seat_status SET status_id = '1' WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  return rows;
+}
+
 module.exports = {
   getPoolConnection,
   beginTransaction,
@@ -76,4 +83,5 @@ module.exports = {
   getSessionInfo,
   getSeatInfo,
   getSeats,
+  changeSeatsToEmpty,
 };

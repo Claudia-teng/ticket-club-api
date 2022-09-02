@@ -91,7 +91,10 @@ async function lockSeats(req, res) {
   }
 }
 
+async function unlockSeats() {}
+
 module.exports = {
   getSeatsByAreaId,
   lockSeats,
+  unlockSeats,
 };

@@ -11,15 +11,22 @@ const io = new Server(httpServer, {
 });
 
 io.on('connection', (socket) => {
-  // let chatroom;
-  // socket.on('joinRoom', ({ room }) => {
-  //   console.log('in room');
-  //   chatroom = room;
-  //   socket.join(room);
-  // });
+  let chatroom;
+  socket.on('join room', (data) => {
+    console.log(`in ${data.sessionId}-${data.areaId} room`);
+    chatroom = `${data.sessionId}-${data.areaId}`;
+    socket.join(chatroom);
+  });
 
-  socket.on('seatChange', async (data) => {
-    io.emit('seatChange', data);
+  socket.on('select seat', async (data) => {
+    console.log(data);
+    if (data.status_id === 4) {
+      data.status_id = 5;
+    }
+    if (data.status_id === 1) {
+      data.status_id = 1;
+    }
+    socket.to(chatroom).emit('select seat', data);
   });
 });
 
