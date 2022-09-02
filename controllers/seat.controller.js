@@ -9,6 +9,7 @@ const {
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
+  changeSeatsToEmpty,
 } = require('../models/seat.model');
 async function getSeatsByAreaId(req, res) {
   // todo - validation
@@ -62,6 +63,7 @@ async function lockSeats(req, res) {
     const tickets = [];
     const data = {
       total: 0,
+      sessionId: sessionId,
       tickets: tickets,
     };
 
@@ -91,7 +93,17 @@ async function lockSeats(req, res) {
   }
 }
 
-async function unlockSeats() {}
+async function unlockSeats(data) {
+  try {
+    const seatIds = [];
+    for (let seat of data.tickets) {
+      seatIds.push(seat.seatId);
+    }
+    await changeSeatsToEmpty(data.sessionId, seatIds);
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 module.exports = {
   getSeatsByAreaId,
