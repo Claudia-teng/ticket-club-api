@@ -38,6 +38,11 @@ io.on('connection', (socket) => {
     console.log('book seat', data);
     socket.to(chatroom).emit('book seat', data);
   });
+
+  socket.on('unselect seat', (data) => {
+    console.log('unselect seat', data);
+    socket.to(chatroom).emit('unselect seat', data);
+  });
 });
 
 httpServer.listen(PORT, () => {
