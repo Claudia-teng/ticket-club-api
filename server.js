@@ -5,6 +5,7 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
+const rateLimiter = require('./service/rate-limiter');
 const io = new Server(httpServer, {
   cors: {
     origin: ['http://localhost:5000'],
@@ -13,6 +14,12 @@ const io = new Server(httpServer, {
 
 io.on('connection', (socket) => {
   let chatroom;
+  socket.on('check limit', async (data) => {
+    const result = await rateLimiter(data);
+    // console.log('result', result);
+    io.to(socket.id).emit('check limit', result);
+  });
+
   socket.on('join room', (data) => {
     // console.log(`in ${data.sessionId}-${data.areaId} room`);
     chatroom = `${data.sessionId}-${data.areaId}`;

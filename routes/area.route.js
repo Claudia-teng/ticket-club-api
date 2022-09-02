@@ -1,7 +1,7 @@
-const express = require("express");
+const express = require('express');
 const areaRouter = express.Router();
-const { getAreaBySessionId } = require("../controllers/area.controller");
+const { getAreaBySessionId } = require('../controllers/area.controller');
 
-areaRouter.get("/:id", getAreaBySessionId);
+areaRouter.get('/:id', getAreaBySessionId);
 
 module.exports = areaRouter;
