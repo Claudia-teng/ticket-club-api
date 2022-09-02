@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
     socket.join(chatroom);
   });
 
-  socket.on('select seat', async (data) => {
+  socket.on('select seat', (data) => {
     console.log(data);
     if (data.status_id === 4) {
       data.status_id = 5;
@@ -27,6 +27,11 @@ io.on('connection', (socket) => {
       data.status_id = 1;
     }
     socket.to(chatroom).emit('select seat', data);
+  });
+
+  socket.on('lock seat', (data) => {
+    console.log('lock seat', data);
+    socket.to(chatroom).emit('lock seat', data);
   });
 });
 
