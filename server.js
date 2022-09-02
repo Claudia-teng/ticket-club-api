@@ -33,6 +33,11 @@ io.on('connection', (socket) => {
     console.log('lock seat', data);
     socket.to(chatroom).emit('lock seat', data);
   });
+
+  socket.on('book seat', (data) => {
+    console.log('book seat', data);
+    socket.to(chatroom).emit('book seat', data);
+  });
 });
 
 httpServer.listen(PORT, () => {
