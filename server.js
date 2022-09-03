@@ -19,14 +19,6 @@ const io = new Server(httpServer, {
   },
 });
 
-const socketIdUser = {};
-// {
-//   socketId: {
-//     userId: 1,
-//     sessionId: 1,
-//     isInQueue: true
-//   }
-// };
 const userIdSocket = {};
 // {
 //   userId: {
@@ -47,19 +39,12 @@ io.on('connection', (socket) => {
   socket.on('check limit', async (sessionId) => {
     const result = await rateLimiter(sessionId, socket.userId);
     // console.log('result', result);
-    socketIdUser[socket.id] = {
-      userId: socket.userId,
-      sessionId: sessionId,
-      isInQueue: !result.pass,
-      timeStamp: result.timeStamp,
-    };
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
       isInQueue: !result.pass,
       timeStamp: result.timeStamp,
     };
-    console.log('socketIdUser', socketIdUser);
     console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
   });
@@ -108,7 +93,6 @@ io.on('connection', (socket) => {
     const socketId = socket.id;
     const userId = socket.userId;
     console.log('userIdSocket[userId]', userIdSocket[userId]);
-    console.log('socketIdUser[socketId]', socketIdUser[socketId]);
     const isInQueue = userIdSocket[userId].isInQueue;
     const sessionId = userIdSocket[userId].sessionId;
     const timeStamp = userIdSocket[userId].timeStamp;
@@ -122,8 +106,6 @@ io.on('connection', (socket) => {
       const targetUserId = user.userId;
       userIdSocket[targetUserId].isInQueue = false;
       userIdSocket[targetUserId].timeStamp = user.timeStamp;
-      socketIdUser[socket.id].isInQueue = false;
-      socketIdUser[socket.id].timeStamp = user.timeStamp;
       // notify target user
       const targetSocketId = userIdSocket[targetUserId].socketId;
       io.to(targetSocketId).emit('ready to go');
