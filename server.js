@@ -111,14 +111,14 @@ io.on('connection', (socket) => {
     const sessionId = socketIdUser[socketId].sessionId;
     const timeStamp = socketIdUser[socketId].timeStamp;
 
-    // not in queue
+    // in event
     if (!isInQueue) {
       await removePersonFromEvent(sessionId, userId, timeStamp);
       const targetUserId = await moveFirstPersonToEvent(sessionId);
       // no one waiting
-      if (!targetDocketId) return;
-      const targetDocketId = userIdSocket[targetUserId].socketId;
-      io.to(targetDocketId).emit('ready to go');
+      if (!targetUserId) return;
+      const targetSocketId = userIdSocket[targetUserId].socketId;
+      io.to(targetSocketId).emit('ready to go');
       const userIds = await getUserIdsInQueue(sessionId);
       for (const userId of userIds) {
         const socketId = userIdSocket[userId].socketId;
