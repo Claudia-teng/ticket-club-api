@@ -59,8 +59,8 @@ io.on('connection', (socket) => {
       isInQueue: !result.pass,
       timeStamp: result.timeStamp,
     };
-    // console.log('socketIdUser', socketIdUser);
-    // console.log('userIdSocket', userIdSocket);
+    console.log('socketIdUser', socketIdUser);
+    console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
   });
 
@@ -107,36 +107,42 @@ io.on('connection', (socket) => {
     console.log('disconnect');
     const socketId = socket.id;
     const userId = socket.userId;
-    const isInQueue = socketIdUser[socketId].isInQueue;
-    const sessionId = socketIdUser[socketId].sessionId;
-    const timeStamp = socketIdUser[socketId].timeStamp;
+    console.log('userIdSocket[userId]', userIdSocket[userId]);
+    console.log('socketIdUser[socketId]', socketIdUser[socketId]);
+    const isInQueue = userIdSocket[userId].isInQueue;
+    const sessionId = userIdSocket[userId].sessionId;
+    const timeStamp = userIdSocket[userId].timeStamp;
 
-    // in event
     if (!isInQueue) {
       await removePersonFromEvent(sessionId, userId, timeStamp);
-      const targetUserId = await moveFirstPersonToEvent(sessionId);
-      // no one waiting
-      if (!targetUserId) return;
+      const user = await moveFirstPersonToEvent(sessionId);
+      console.log('user', user);
+      if (!user) return;
+      // update isInQueue & timeStamp for target user
+      const targetUserId = user.userId;
+      userIdSocket[targetUserId].isInQueue = false;
+      userIdSocket[targetUserId].timeStamp = user.timeStamp;
+      socketIdUser[socket.id].isInQueue = false;
+      socketIdUser[socket.id].timeStamp = user.timeStamp;
+      // notify target user
       const targetSocketId = userIdSocket[targetUserId].socketId;
       io.to(targetSocketId).emit('ready to go');
+      // notify other user in queue
       const userIds = await getUserIdsInQueue(sessionId);
       for (const userId of userIds) {
         const socketId = userIdSocket[userId].socketId;
         io.to(socketId).emit('minus waiting people');
       }
-      return;
+    } else {
+      // remove left person
+      const index = await removeUserIdFromQueue(sessionId, userId);
+      // emit to all people behind the left person
+      const userIds = await getUserIdsAfterLeftPerson(sessionId, index);
+      for (const userId of userIds) {
+        const socketId = userIdSocket[userId].socketId;
+        io.to(socketId).emit('minus waiting people');
+      }
     }
-
-    // in queue
-    const eventQueueKey = `${sessionId}-queue`;
-    // emit to all people behind the left person
-    const userIds = await getUserIdsAfterLeftPerson(eventQueueKey, userId, timeStamp);
-    for (const userId of userIds) {
-      const socketId = userIdSocket[userId].socketId;
-      io.to(socketId).emit('minus waiting people');
-    }
-    // remove left person
-    await removeUserIdFromQueue(eventQueueKey, userId, timeStamp);
   });
 });
 
