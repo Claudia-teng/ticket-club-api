@@ -5,7 +5,13 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
-const { getUserIdsAfterLeftPerson, removeUserIdFromQueue } = require('./service/queue');
+const {
+  getUserIdsAfterLeftPerson,
+  removeUserIdFromQueue,
+  removePersonFromEvent,
+  moveFirstPersonToEvent,
+  getUserIdsInQueue,
+} = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const io = new Server(httpServer, {
   cors: {
@@ -45,14 +51,16 @@ io.on('connection', (socket) => {
       userId: socket.userId,
       sessionId: sessionId,
       isInQueue: !result.pass,
+      timeStamp: result.timeStamp,
     };
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
       isInQueue: !result.pass,
+      timeStamp: result.timeStamp,
     };
-    console.log('socketIdUser', socketIdUser);
-    console.log('userIdSocket', userIdSocket);
+    // console.log('socketIdUser', socketIdUser);
+    // console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
   });
 
@@ -98,14 +106,19 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async (data) => {
     console.log('disconnect');
     const socketId = socket.id;
+    const userId = socket.userId;
     const isInQueue = socketIdUser[socketId].isInQueue;
     const sessionId = socketIdUser[socketId].sessionId;
+    const timeStamp = socketIdUser[socketId].timeStamp;
+
     // not in queue
     if (!isInQueue) {
-      await removePersonFromEvent();
-      const userId = await moveFirstPersonToEvent(sessionId);
-      const socketId = userIdSocket[userId].socketId;
-      io.to(socketId).emit('ready to go');
+      await removePersonFromEvent(sessionId, userId, timeStamp);
+      const targetUserId = await moveFirstPersonToEvent(sessionId);
+      // no one waiting
+      if (!targetDocketId) return;
+      const targetDocketId = userIdSocket[targetUserId].socketId;
+      io.to(targetDocketId).emit('ready to go');
       const userIds = await getUserIdsInQueue(sessionId);
       for (const userId of userIds) {
         const socketId = userIdSocket[userId].socketId;
@@ -115,16 +128,15 @@ io.on('connection', (socket) => {
     }
 
     // in queue
-    const key = `${sessionId}-queue`;
-    const userId = socket.userId;
+    const eventQueueKey = `${sessionId}-queue`;
     // emit to all people behind the left person
-    const userIds = await getUserIdsAfterLeftPerson(key, userId);
+    const userIds = await getUserIdsAfterLeftPerson(eventQueueKey, userId, timeStamp);
     for (const userId of userIds) {
       const socketId = userIdSocket[userId].socketId;
       io.to(socketId).emit('minus waiting people');
     }
     // remove left person
-    await removeUserIdFromQueue(key, userId);
+    await removeUserIdFromQueue(eventQueueKey, userId, timeStamp);
   });
 });
 
