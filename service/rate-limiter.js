@@ -44,9 +44,7 @@ async function rateLimiter(sessionId, userId, limit) {
     let milliseconds = eventLength < limit ? 0 : +result.split(',')[3].split(':')[1];
     // console.log('milliseconds', milliseconds);
     const queueRound = +result.split(',')[4];
-    if (queueRound) {
-      milliseconds = queueRound * (600 * 1000) + milliseconds;
-    }
+    if (queueRound) milliseconds = queueRound * (600 * 1000) + milliseconds;
     return {
       pass: eventLength < limit,
       waitPeople,

@@ -105,7 +105,6 @@ io.on('connection', (socket) => {
       // emit to all users in queue
       for (const user of users) {
         const socketId = userIdSocket[user.userId].socketId;
-        console.log('1-socketId', socketId);
         const data = {
           timeStamp: user.timeStamp,
           milliseconds: user.milliseconds,

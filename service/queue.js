@@ -43,13 +43,14 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
     `,
   });
 
+  const currentTimeStamp = new Date().getTime();
   try {
     const results = await redis.disconnectFromEvent(
       2,
       sessionId,
       `${sessionId}-queue`,
       `${userId}:${timeStamp}`,
-      timeStamp,
+      currentTimeStamp,
       limit
     );
     // console.log('results', results);
@@ -58,7 +59,7 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
     const togoUser = results.shift();
     notifyUsers.push({
       userId: togoUser.split(':')[0],
-      timeStamp: togoUser.split(':')[1],
+      timeStamp: currentTimeStamp,
     });
     results.forEach((result) => {
       const queueRound = result.split(',')[2];
