@@ -1,8 +1,7 @@
 const redis = require('../service/cache');
 
-async function rateLimiter(sessionId, userId) {
+async function rateLimiter(sessionId, userId, limit) {
   // todo - validation
-  const limit = 3;
   await redis.defineCommand('rateLimiter', {
     lua: `
       local limit = tonumber(ARGV[2])
@@ -12,13 +11,20 @@ async function rateLimiter(sessionId, userId) {
       local queueRound = 0
       
       if (eventLength >= limit) then
+        local index = 0
         local queueLength = redis.call("LLEN", KEYS[2])
-        local index =  queueLength % limit
+        waitPeople = queueLength + 1
         queueRound = math.floor(queueLength / limit)
 
-        waitPeople = queueLength + 1
+        if (queueRound < 1) then
+          index = queueLength % limit
+          user = redis.call("LINDEX", KEYS[1], index)
+        else
+          index = (queueRound - 1) * limit + (queueLength % limit)
+          user = redis.call("LINDEX", KEYS[2], index)
+        end
+
         redis.call("RPUSH", KEYS[2], ARGV[1])
-        user = redis.call("LINDEX", KEYS[1], index)
       else
         redis.call("RPUSH", KEYS[1], ARGV[1])
       end
@@ -30,7 +36,7 @@ async function rateLimiter(sessionId, userId) {
   try {
     const timeStamp = new Date().getTime();
     const result = await redis.rateLimiter(2, sessionId, `${sessionId}-queue`, `${userId}:${timeStamp}`, limit);
-    console.log('result', result);
+    // console.log('result', result);
     const eventLength = +result.split(',')[1];
     // console.log('eventLength', eventLength);
     const waitPeople = +result.split(',')[2];

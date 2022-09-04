@@ -22,20 +22,59 @@ async function moveFirstPersonToEvent(sessionId) {
   }
 }
 
-async function getUserIdsInQueue(sessionId) {
+async function getUserIdsInQueue(sessionId, limit) {
+  const eventKey = sessionId;
   const eventQueueKey = `${sessionId}-queue`;
-  const users = await redis.lrange(eventQueueKey, 0, -1);
-  // todo - find corresponding time from eventKey
-  const userIds = users.map((user) => user.split(':')[0]);
-  return userIds;
+  const eventQueueLength = await redis.llen(eventQueueKey);
+  const notifyUsers = [];
+  for (let i = 0; i < eventQueueLength; i++) {
+    const self = await redis.lindex(eventQueueKey, i);
+    const queueRound = Math.floor(eventQueueLength / limit);
+    let targetIndex;
+    let targetUser;
+    if (queueRound < 1) {
+      targetIndex = eventQueueLength % limit;
+      targetUser = await redis.lindex(eventKey, targetIndex);
+    } else {
+      targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit);
+      targetUser = await redis.lindex(eventQueueKey, targetIndex);
+    }
+    notifyUsers.push({
+      userId: self.split(':')[0],
+      timeStamp: self.split(':')[1],
+      milliseconds: targetUser.split(':')[1],
+    });
+  }
+  console.log('notifyUsers', notifyUsers);
+  return notifyUsers;
 }
 
-async function getUserIdsAfterLeftPerson(sessionId, index) {
+async function getUserIdsAfterLeftPerson(sessionId, index, limit) {
+  const eventKey = sessionId;
   const eventQueueKey = `${sessionId}-queue`;
-  const users = await redis.lrange(eventQueueKey, index, -1);
-  // todo - find corresponding time from eventKey
-  const userIds = users.map((user) => user.split(':')[0]);
-  return userIds;
+  const eventQueueLength = await redis.llen(eventQueueKey);
+  console.log('index', index);
+  console.log('eventQueueLength', eventQueueLength);
+  const notifyUsers = [];
+  for (let i = index; i < eventQueueLength; i++) {
+    const self = await redis.lindex(eventQueueKey, i);
+    const queueRound = Math.floor(eventQueueLength / limit);
+    let targetIndex;
+    let targetUser;
+    if (queueRound < 1) {
+      targetIndex = eventQueueLength % limit;
+      targetUser = await redis.lindex(eventKey, targetIndex);
+    } else {
+      targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit);
+      targetUser = await redis.lindex(eventQueueKey, targetIndex);
+    }
+    notifyUsers.push({
+      userId: self.split(':')[0],
+      timeStamp: self.split(':')[1],
+      milliseconds: targetUser.split(':')[1],
+    });
+  }
+  return notifyUsers;
 }
 
 async function removeUserIdFromQueue(sessionId, userId, timeStamp) {

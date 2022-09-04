@@ -20,6 +20,7 @@ const io = new Server(httpServer, {
 });
 
 const userIdSocket = {};
+const limit = 1;
 // {
 //   userId: {
 //     socketId: 1,
@@ -38,8 +39,8 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   let chatroom;
   socket.on('check limit', async (sessionId) => {
-    const result = await rateLimiter(sessionId, socket.userId);
-    console.log('result', result);
+    const result = await rateLimiter(sessionId, socket.userId, limit);
+    // console.log('result', result);
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
@@ -99,7 +100,6 @@ io.on('connection', (socket) => {
     if (!isInQueue) {
       await removePersonFromEvent(sessionId, userId, timeStamp);
       const user = await moveFirstPersonToEvent(sessionId);
-      console.log('user', user);
       if (!user) return;
       // update isInQueue & timeStamp for target user
       const targetUserId = user.userId;
@@ -108,20 +108,30 @@ io.on('connection', (socket) => {
       // notify target user
       const targetSocketId = userIdSocket[targetUserId].socketId;
       io.to(targetSocketId).emit('ready to go');
-      // notify other user in queue
-      const userIds = await getUserIdsInQueue(sessionId);
-      for (const userId of userIds) {
-        const socketId = userIdSocket[userId].socketId;
-        io.to(socketId).emit('minus waiting people');
+      // emit to all users in queue
+      const users = await getUserIdsInQueue(sessionId, limit);
+      for (const user of users) {
+        const socketId = userIdSocket[user.userId].socketId;
+        console.log('1-socketId', socketId);
+        const data = {
+          timeStamp: user.timeStamp,
+          milliseconds: user.milliseconds,
+        };
+        io.to(socketId).emit('minus waiting people', data);
       }
     } else {
-      // remove left person
+      // remove left user
       const index = await removeUserIdFromQueue(sessionId, userId, timeStamp);
-      // emit to all people behind the left person
-      const userIds = await getUserIdsAfterLeftPerson(sessionId, index);
-      for (const userId of userIds) {
-        const socketId = userIdSocket[userId].socketId;
-        io.to(socketId).emit('minus waiting people');
+      // emit to all users behind the left user
+      const users = await getUserIdsAfterLeftPerson(sessionId, index, limit);
+      for (const user of users) {
+        const socketId = userIdSocket[user.userId].socketId;
+        console.log('2-socketId', socketId);
+        const data = {
+          timeStamp: user.timeStamp,
+          milliseconds: user.milliseconds,
+        };
+        io.to(socketId).emit('minus waiting people', data);
       }
     }
   });
