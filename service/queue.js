@@ -24,12 +24,14 @@ async function moveFirstPersonToEvent(sessionId) {
 async function getUserIdsInQueue(sessionId) {
   const eventQueueKey = `${sessionId}-queue`;
   const userIds = await redis.lrange(eventQueueKey, 0, -1);
+  // todo - find corresponding time from eventKey
   return userIds;
 }
 
 async function getUserIdsAfterLeftPerson(sessionId, index) {
   const eventQueueKey = `${sessionId}-queue`;
   const userIds = await redis.lrange(eventQueueKey, index, -1);
+  // todo - find corresponding time from eventKey
   return userIds;
 }
 

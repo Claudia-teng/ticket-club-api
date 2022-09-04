@@ -25,6 +25,7 @@ const userIdSocket = {};
 //     socketId: 1,
 //     sessionId: 1,
 //     isInQueue: true
+//     timeStamp: 123,
 //   }
 // };
 
@@ -38,7 +39,7 @@ io.on('connection', (socket) => {
   let chatroom;
   socket.on('check limit', async (sessionId) => {
     const result = await rateLimiter(sessionId, socket.userId);
-    // console.log('result', result);
+    console.log('result', result);
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
@@ -51,7 +52,6 @@ io.on('connection', (socket) => {
 
   socket.on('join room', (data) => {
     // console.log(`in ${data.sessionId}-${data.areaId} room`);
-    // socketId - userId + sessionId
     chatroom = `${data.sessionId}-${data.areaId}`;
     socket.join(chatroom);
   });
@@ -90,9 +90,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', async (data) => {
     console.log('disconnect');
-    const socketId = socket.id;
     const userId = socket.userId;
-    console.log('userIdSocket[userId]', userIdSocket[userId]);
+    if (!userIdSocket[userId]) return;
     const isInQueue = userIdSocket[userId].isInQueue;
     const sessionId = userIdSocket[userId].sessionId;
     const timeStamp = userIdSocket[userId].timeStamp;
