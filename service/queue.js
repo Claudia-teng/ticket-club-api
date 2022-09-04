@@ -29,20 +29,26 @@ async function getUserIdsInQueue(sessionId, limit) {
   const notifyUsers = [];
   for (let i = 0; i < eventQueueLength; i++) {
     const self = await redis.lindex(eventQueueKey, i);
-    const queueRound = Math.floor(eventQueueLength / limit);
+    const queueRound = Math.floor(i / limit);
+    console.log('queueRound', queueRound);
     let targetIndex;
     let targetUser;
+    let milliseconds;
     if (queueRound < 1) {
+      console.log('1');
       targetIndex = eventQueueLength % limit;
       targetUser = await redis.lindex(eventKey, targetIndex);
+      milliseconds = +targetUser.split(':')[1];
     } else {
+      console.log('2');
       targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit);
       targetUser = await redis.lindex(eventQueueKey, targetIndex);
+      milliseconds = queueRound * (600 * 1000) + +targetUser.split(':')[1];
     }
     notifyUsers.push({
       userId: self.split(':')[0],
       timeStamp: self.split(':')[1],
-      milliseconds: targetUser.split(':')[1],
+      milliseconds,
     });
   }
   console.log('notifyUsers', notifyUsers);
@@ -58,20 +64,26 @@ async function getUserIdsAfterLeftPerson(sessionId, index, limit) {
   const notifyUsers = [];
   for (let i = index; i < eventQueueLength; i++) {
     const self = await redis.lindex(eventQueueKey, i);
-    const queueRound = Math.floor(eventQueueLength / limit);
+    const queueRound = Math.floor(i / limit);
+    console.log('queueRound', queueRound);
     let targetIndex;
     let targetUser;
+    let milliseconds;
     if (queueRound < 1) {
+      console.log('1');
       targetIndex = eventQueueLength % limit;
       targetUser = await redis.lindex(eventKey, targetIndex);
+      milliseconds = +targetUser.split(':')[1];
     } else {
+      console.log('2');
       targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit);
       targetUser = await redis.lindex(eventQueueKey, targetIndex);
+      milliseconds = queueRound * (600 * 1000) + +targetUser.split(':')[1];
     }
     notifyUsers.push({
       userId: self.split(':')[0],
       timeStamp: self.split(':')[1],
-      milliseconds: targetUser.split(':')[1],
+      milliseconds,
     });
   }
   return notifyUsers;
