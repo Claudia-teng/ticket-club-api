@@ -5,13 +5,7 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
-const {
-  getUserIdsAfterLeftPerson,
-  removeUserIdFromQueue,
-  removePersonFromEvent,
-  moveFirstPersonToEvent,
-  getUserIdsInQueue,
-} = require('./service/queue');
+const { disconnectFromQueue, disconnectFromEvent } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const io = new Server(httpServer, {
   cors: {
@@ -98,18 +92,17 @@ io.on('connection', (socket) => {
     const timeStamp = userIdSocket[userId].timeStamp;
 
     if (!isInQueue) {
-      await removePersonFromEvent(sessionId, userId, timeStamp);
-      const user = await moveFirstPersonToEvent(sessionId);
-      if (!user) return;
-      // update isInQueue & timeStamp for target user
-      const targetUserId = user.userId;
-      userIdSocket[targetUserId].isInQueue = false;
-      userIdSocket[targetUserId].timeStamp = user.timeStamp;
-      // notify target user
-      const targetSocketId = userIdSocket[targetUserId].socketId;
+      const users = await disconnectFromEvent(sessionId, userId, timeStamp, limit);
+      // no users waiting
+      if (!users.length) return;
+      // update isInQueue & timeStamp for togoUser & notify
+      const togoUser = users.shift();
+      const togoUserId = togoUser.userId;
+      userIdSocket[togoUserId].isInQueue = false;
+      userIdSocket[togoUserId].timeStamp = togoUser.timeStamp;
+      const targetSocketId = userIdSocket[togoUserId].socketId;
       io.to(targetSocketId).emit('ready to go');
       // emit to all users in queue
-      const users = await getUserIdsInQueue(sessionId, limit);
       for (const user of users) {
         const socketId = userIdSocket[user.userId].socketId;
         console.log('1-socketId', socketId);
@@ -120,13 +113,10 @@ io.on('connection', (socket) => {
         io.to(socketId).emit('minus waiting people', data);
       }
     } else {
-      // remove left user
-      const index = await removeUserIdFromQueue(sessionId, userId, timeStamp);
-      // emit to all users behind the left user
-      const users = await getUserIdsAfterLeftPerson(sessionId, index, limit);
+      const users = await disconnectFromQueue(sessionId, userId, timeStamp, limit);
+      // console.log('users', users);
       for (const user of users) {
         const socketId = userIdSocket[user.userId].socketId;
-        console.log('2-socketId', socketId);
         const data = {
           timeStamp: user.timeStamp,
           milliseconds: user.milliseconds,
