@@ -8,8 +8,9 @@ async function removePersonFromEvent(sessionId, userId, timeStamp) {
 async function moveFirstPersonToEvent(sessionId) {
   const eventKey = `${sessionId}`;
   const eventQueueKey = `${sessionId}-queue`;
-  const userId = await redis.lpop(eventQueueKey);
-  if (userId) {
+  const user = await redis.lpop(eventQueueKey);
+  if (user) {
+    const userId = user.split(':')[0];
     const timeStamp = new Date().getTime();
     await redis.rpush(eventKey, `${userId}:${timeStamp}`);
     return {
@@ -23,22 +24,24 @@ async function moveFirstPersonToEvent(sessionId) {
 
 async function getUserIdsInQueue(sessionId) {
   const eventQueueKey = `${sessionId}-queue`;
-  const userIds = await redis.lrange(eventQueueKey, 0, -1);
+  const users = await redis.lrange(eventQueueKey, 0, -1);
   // todo - find corresponding time from eventKey
+  const userIds = users.map((user) => user.split(':')[0]);
   return userIds;
 }
 
 async function getUserIdsAfterLeftPerson(sessionId, index) {
   const eventQueueKey = `${sessionId}-queue`;
-  const userIds = await redis.lrange(eventQueueKey, index, -1);
+  const users = await redis.lrange(eventQueueKey, index, -1);
   // todo - find corresponding time from eventKey
+  const userIds = users.map((user) => user.split(':')[0]);
   return userIds;
 }
 
-async function removeUserIdFromQueue(sessionId, userId) {
+async function removeUserIdFromQueue(sessionId, userId, timeStamp) {
   const eventQueueKey = `${sessionId}-queue`;
-  const index = redis.lpos(eventQueueKey, userId);
-  await redis.lrem(eventQueueKey, 1, userId);
+  const index = redis.lpos(eventQueueKey, `${userId}:${timeStamp}`);
+  await redis.lrem(eventQueueKey, 1, `${userId}:${timeStamp}`);
   return index;
 }
 

@@ -116,7 +116,7 @@ io.on('connection', (socket) => {
       }
     } else {
       // remove left person
-      const index = await removeUserIdFromQueue(sessionId, userId);
+      const index = await removeUserIdFromQueue(sessionId, userId, timeStamp);
       // emit to all people behind the left person
       const userIds = await getUserIdsAfterLeftPerson(sessionId, index);
       for (const userId of userIds) {
