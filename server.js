@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
       isInQueue: !result.pass,
       timeStamp: result.timeStamp,
     };
-    console.log('userIdSocket', userIdSocket);
+    // console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
   });
 
