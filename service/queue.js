@@ -91,7 +91,7 @@ async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
       local eventQueueLength = redis.call("LLEN", eventQueueKey)
       local notifyUsers = {}
 
-      if (eventQueueLength) then 
+      if (eventQueueLength > 0) then 
         for i = index, eventQueueLength - 1 do
           local self = redis.call("LINDEX", eventQueueKey, i)
           local queueRound = math.floor(i / limit);
