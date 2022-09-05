@@ -9,7 +9,7 @@ const { disconnectFromQueue, disconnectFromEvent } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5000'],
+    origin: ['http://localhost:5000', 'https://claudia-teng.com'],
   },
 });
 
