@@ -36,7 +36,7 @@ async function rateLimiter(sessionId, userId, limit) {
   try {
     const timeStamp = new Date().getTime();
     const result = await redis.rateLimiter(2, sessionId, `${sessionId}-queue`, `${userId}:${timeStamp}`, limit);
-    // console.log('result', result);
+    console.log('result', result);
     const eventLength = +result.split(',')[1];
     // console.log('eventLength', eventLength);
     const waitPeople = +result.split(',')[2];
@@ -45,11 +45,14 @@ async function rateLimiter(sessionId, userId, limit) {
     // console.log('milliseconds', milliseconds);
     const queueRound = +result.split(',')[4];
     if (queueRound) milliseconds = queueRound * (600 * 1000) + milliseconds;
+    const expires = +milliseconds + 600 * 1000;
+    const seconds = Math.floor((expires - new Date().getTime()) / 1000) + 10;
     return {
       pass: eventLength < limit,
       waitPeople,
       timeStamp,
       milliseconds,
+      seconds,
     };
   } catch (err) {
     console.log('err', err);

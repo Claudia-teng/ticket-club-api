@@ -105,9 +105,12 @@ io.on('connection', (socket) => {
       // emit to all users in queue
       for (const user of users) {
         const socketId = userIdSocket[user.userId].socketId;
+        const expires = +user.milliseconds + 600 * 1000;
+        const seconds = Math.floor((expires - new Date().getTime()) / 1000) + 10;
         const data = {
           timeStamp: user.timeStamp,
           milliseconds: user.milliseconds,
+          seconds: seconds,
         };
         io.to(socketId).emit('minus waiting people', data);
       }
@@ -116,9 +119,12 @@ io.on('connection', (socket) => {
       // console.log('users', users);
       for (const user of users) {
         const socketId = userIdSocket[user.userId].socketId;
+        const expires = +user.milliseconds + 600 * 1000;
+        const seconds = Math.floor((expires - new Date().getTime()) / 1000) + 10;
         const data = {
           timeStamp: user.timeStamp,
           milliseconds: user.milliseconds,
+          seconds: seconds,
         };
         io.to(socketId).emit('minus waiting people', data);
       }
