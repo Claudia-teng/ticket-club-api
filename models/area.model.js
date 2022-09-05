@@ -4,7 +4,7 @@ async function getAreaIds(sessionId) {
   let sql = `SELECT a.id, a.name, p.price FROM session s
     JOIN venue v on v.id = s.venue_id 
     JOIN area a on v.id = a.venue_id
-    JOIN price p on a.id = p.area_id
+    JOIN price p on a.id = p.area_id && p.session_id = s.id
     WHERE s.id = ?`;
   const [rows] = await pool.execute(sql, [sessionId]);
   return rows;

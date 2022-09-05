@@ -14,7 +14,7 @@ const io = new Server(httpServer, {
 });
 
 const userIdSocket = {};
-const limit = 1;
+const limit = 3;
 // {
 //   userId: {
 //     socketId: 1,
