@@ -7,6 +7,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
 const { disconnectFromQueue, disconnectFromEvent } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
+const { socketIsAuth } = require('./util/auth');
 const io = new Server(httpServer, {
   cors: {
     origin: ['http://localhost:5000', 'https://claudia-teng.com'],
@@ -24,15 +25,21 @@ const limit = 3;
 //   }
 // };
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
-  socket.userId = token;
+  // console.log('token', token);
+  if (!token) return next();
+  const user = await socketIsAuth(token);
+  // console.log('user', user);
+  if (!user) return next();
+  socket.userId = user.id;
   next();
 });
 
 io.on('connection', (socket) => {
   let chatroom;
   socket.on('check limit', async (sessionId) => {
+    if (!socket.userId) return io.to(socket.id).emit('check limit', null);
     const result = await rateLimiter(sessionId, socket.userId, limit);
     // console.log('result', result);
     userIdSocket[socket.userId] = {

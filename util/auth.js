@@ -2,6 +2,38 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const pool = require('../service/db');
 
+async function socketIsAuth(token) {
+  token = token.replace('Bearer ', '');
+  let user;
+  try {
+    user = await new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+        if (err) {
+          reject('Verify error');
+        } else {
+          resolve(payload);
+        }
+      });
+    });
+  } catch (err) {
+    console.log('err', err);
+    return null;
+  }
+
+  try {
+    // console.log('sql', user);
+    let sql = `SELECT u.id FROM user u WHERE id = ?`;
+    const [rows] = await pool.execute(sql, [user.id]);
+    if (!rows.length) return null;
+    user = rows[0];
+    console.log('pass');
+    return user;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
+
 async function isAuth(req, res, next) {
   let token;
   if (req.headers.authorization?.startsWith('Bearer')) {
@@ -66,5 +98,6 @@ async function generateJwtToken(userId) {
 
 module.exports = {
   generateJwtToken,
+  socketIsAuth,
   isAuth,
 };

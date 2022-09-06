@@ -18,7 +18,7 @@ async function placeOrder(req, res) {
   try {
     await beginTransaction(connection);
     const seats = await getPriceBySeatIds(connection, sessionId, seatIds);
-    const total = seats.reduce((acc, curr) => acc.price + curr.price);
+    const total = seats.reduce((acc, curr) => acc + curr.price, 0);
     const orderId = await insertOrder(connection, req.user.id, sessionId, total);
     for (let seat of seats) {
       await insertOrderDetail(connection, orderId, seat.id, seat.price);
