@@ -2,6 +2,12 @@ require('dotenv').config();
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 const pool = require('../service/db');
+const {
+  checkUserExistByEmail,
+  insertNewUser,
+  getUserProfile,
+  getOrderDetailByUserId,
+} = require('../models/user.model');
 const { generateJwtToken } = require('../util/auth');
 
 async function signup(req, res) {
@@ -43,16 +49,14 @@ async function signup(req, res) {
   }
 
   try {
-    let sql = `SELECT * FROM user WHERE email = ?`;
-    const [rows] = await pool.execute(sql, [email]);
+    const rows = await checkUserExistByEmail(email);
     if (rows.length) {
       return res.status(403).json({
         error: 'This email has been signed up before.',
       });
     }
     password = await bcrypt.hash(password, 10);
-    sql = `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`;
-    const [user] = await pool.execute(sql, [name, email, password]);
+    const user = await insertNewUser(name, email, password);
     const token = await generateJwtToken(user.insertId);
     return res.status(200).json({
       data: {
@@ -132,11 +136,42 @@ async function signin(req, res) {
 }
 
 async function getProfile(req, res) {
+  // todo - total
   try {
-    let sql = `SELECT name, email FROM user u WHERE u.id = ?`;
-    const [rows] = await pool.execute(sql, [req.user.id]);
+    const id = req.user.id;
+    const rows = await getUserProfile(id);
     const user = rows[0];
-    return res.status(200).json(user);
+    const details = await getOrderDetailByUserId(id);
+    const events = {};
+    for (const detail of details) {
+      if (!events[detail.session_id]) {
+        events[detail.session_id] = {
+          session_id: detail.session_id,
+          title: detail.title,
+          time: detail.title,
+          venue: detail.venue,
+          total: detail.price,
+          tickets: [
+            {
+              name: detail.venue,
+              price: detail.price,
+            },
+          ],
+        };
+      } else {
+        events[detail.session_id].total += detail.price;
+        events[detail.session_id].tickets.push({
+          name: detail.venue,
+          price: detail.price,
+        });
+      }
+    }
+    const data = {
+      name: user.name,
+      email: user.email,
+      tickets: Object.values(events),
+    };
+    return res.status(200).json(data);
   } catch (err) {
     console.log(err);
     return res.status(400).json({
