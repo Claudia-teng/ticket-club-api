@@ -46,11 +46,34 @@ async function getSessionInfo(sessionId) {
   return rows[0];
 }
 
-async function changeSeatsToSold(sessionId, seatIds) {
+async function getPriceBySeatIds(connection, sessionId, seatIds) {
+  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let sql = `
+    SELECT s.id, price FROM price p
+    JOIN area a ON p.area_id = a.id
+    JOIN seat s ON a.id = s.area_id
+    WHERE s.id IN (${placeholder}) && session_id = ?
+  `;
+  const [rows] = await connection.execute(sql, [...seatIds, sessionId]);
+  return rows;
+}
+
+async function changeSeatsToSold(connection, sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `UPDATE seat_status SET status_id = '3' WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  const [rows] = await connection.execute(sql, [sessionId, ...seatIds]);
   return rows;
+}
+
+async function insertOrder(connection, userId, sessionId, total) {
+  let sql = 'INSERT INTO `order` (user_id, session_id, payment_status_id, total) VALUES (?, ?, ?, ?)';
+  const [rows] = await connection.execute(sql, [userId, sessionId, 1, total]);
+  return rows.insertId;
+}
+
+async function insertOrderDetail(connection, orderId, seatId, price) {
+  let sql = 'INSERT INTO order_detail (order_id, seat_id, price) VALUES (?, ?, ?)';
+  await connection.execute(sql, [orderId, seatId, price]);
 }
 
 async function getSeatInfo(seatId) {
@@ -75,4 +98,7 @@ module.exports = {
   changeSeatsToSold,
   getSessionInfo,
   getSeatInfo,
+  getPriceBySeatIds,
+  insertOrder,
+  insertOrderDetail,
 };
