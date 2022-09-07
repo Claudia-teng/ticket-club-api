@@ -31,6 +31,7 @@ async function getSeatsByAreaId(req, res) {
 
 async function lockSeats(req, res) {
   // todo - validations
+  // check only 4 user ids
 
   const sessionId = req.body.sessionId;
   const areaId = req.body.areaId;
