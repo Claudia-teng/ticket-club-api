@@ -29,7 +29,7 @@ async function socketIsAuth(token) {
     console.log('pass');
     return user;
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
     return null;
   }
 }
@@ -69,7 +69,7 @@ async function isAuth(req, res, next) {
     req.user = rows[0];
     next();
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
     return res.status(400).json({
       error: 'MySQL error.',
     });

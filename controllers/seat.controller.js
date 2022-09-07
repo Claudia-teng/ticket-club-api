@@ -101,7 +101,7 @@ async function unlockSeats(data) {
     }
     await changeSeatsToEmpty(data.sessionId, seatIds);
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
   }
 }
 

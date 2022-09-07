@@ -70,7 +70,7 @@ async function signup(req, res) {
       },
     });
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
     return res.status(400).json({
       error: 'MySQL error.',
     });
@@ -128,7 +128,7 @@ async function signin(req, res) {
       },
     });
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
     return res.status(400).json({
       error: 'MySQL error.',
     });
@@ -173,7 +173,7 @@ async function getProfile(req, res) {
     };
     return res.status(200).json(data);
   } catch (err) {
-    console.log(err);
+    console.log('err', err);
     return res.status(400).json({
       error: 'MySQL error.',
     });
