@@ -9,7 +9,7 @@ async function checkUserExistByEmail(email) {
 async function insertNewUser(name, email, password) {
   let sql = `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`;
   const [rows] = await pool.execute(sql, [name, email, password]);
-  return [rows];
+  return rows;
 }
 
 async function getUserProfile(userId) {
