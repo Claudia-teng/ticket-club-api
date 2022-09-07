@@ -28,13 +28,8 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
           local queueRound = math.floor(i / limit);
           local targetIndex = 0
           local targetUser = 0
-          if (queueRound < 1) then
-            targetIndex = eventQueueLength % limit;
-            targetUser = redis.call("LINDEX", eventKey, targetIndex)
-          else
-            targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit)
-            targetUser = redis.call("LINDEX", eventQueueKey, targetIndex)
-          end
+          targetIndex = i % limit;
+          targetUser = redis.call("LINDEX", eventKey, targetIndex)
           table.insert(notifyUsers, self .. "," .. targetUser .. "," .. queueRound .. ",")
         end
       end
@@ -97,13 +92,8 @@ async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
           local queueRound = math.floor(i / limit);
           local targetIndex = 0
           local targetUser = 0
-          if (queueRound < 1) then
-            targetIndex = eventQueueLength % limit;
-            targetUser = redis.call("LINDEX", eventKey, targetIndex)
-          else
-            targetIndex = (queueRound - 1) * limit + (eventQueueLength % limit)
-            targetUser = redis.call("LINDEX", eventQueueKey, targetIndex)
-          end
+          targetIndex = i % limit;
+          targetUser = redis.call("LINDEX", eventKey, targetIndex)
           table.insert(notifyUsers, self .. "," .. targetUser .. "," .. queueRound .. ",")
         end
       end
@@ -120,7 +110,7 @@ async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
       `${userId}:${timeStamp}`,
       limit
     );
-    // console.log('results', results);
+    console.log('results', results);
     const notifyUsers = [];
     results.forEach((result) => {
       const queueRound = result.split(',')[2];

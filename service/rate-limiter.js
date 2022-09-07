@@ -15,14 +15,8 @@ async function rateLimiter(sessionId, userId, limit) {
         local queueLength = redis.call("LLEN", KEYS[2])
         waitPeople = queueLength + 1
         queueRound = math.floor(queueLength / limit)
-
-        if (queueRound < 1) then
-          index = queueLength % limit
-          user = redis.call("LINDEX", KEYS[1], index)
-        else
-          index = (queueRound - 1) * limit + (queueLength % limit)
-          user = redis.call("LINDEX", KEYS[2], index)
-        end
+        index = queueLength % limit
+        user = redis.call("LINDEX", KEYS[1], index)
 
         redis.call("RPUSH", KEYS[2], ARGV[1])
       else

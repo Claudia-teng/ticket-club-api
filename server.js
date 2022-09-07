@@ -41,14 +41,14 @@ io.on('connection', (socket) => {
   socket.on('check limit', async (sessionId) => {
     if (!socket.userId) return io.to(socket.id).emit('check limit', null);
     const result = await rateLimiter(sessionId, socket.userId, limit);
-    // console.log('result', result);
+    console.log('result', result);
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
       isInQueue: !result.pass,
       timeStamp: result.timeStamp,
     };
-    // console.log('userIdSocket', userIdSocket);
+    console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
   });
 
