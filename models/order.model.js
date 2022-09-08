@@ -16,18 +16,6 @@ async function rollback(connection) {
   return connection.rollback();
 }
 
-async function checkSeatIdExist(seatId) {
-  let sql = 'SELECT user_id from seat_status WHERE seat_id = ?';
-  const [rows] = await pool.execute(sql, [seatId]);
-  return rows;
-}
-
-async function checkSessionExist(sessionId) {
-  let sql = 'SELECT * FROM session WHERE id = ?';
-  const [rows] = await pool.execute(sql, [sessionId]);
-  return rows.length ? true : false;
-}
-
 async function findSeatIds(row, column, areaId) {
   let sql = 'SELECT id FROM seat WHERE `row` = ? && `column` = ? && `area_id` = ?';
   const [rows] = await pool.execute(sql, [row, column, areaId]);
@@ -104,8 +92,6 @@ module.exports = {
   beginTransaction,
   commit,
   rollback,
-  checkSeatIdExist,
-  checkSessionExist,
   findSeatIds,
   getSeatsStatus,
   changeSeatsToLock,

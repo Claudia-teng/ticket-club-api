@@ -6,13 +6,12 @@ const {
   rollback,
   findSeatIds,
   getSeatsStatus,
-  checkSessionExist,
-  checkAreaExist,
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
   changeSeatsToEmpty,
 } = require('../models/seat.model');
+const { checkSessionExist, checkAreaExist } = require('../util/utils');
 
 async function getSeatsByAreaId(req, res) {
   const sessionId = req.body.sessionId;

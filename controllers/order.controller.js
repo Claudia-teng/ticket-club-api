@@ -3,13 +3,13 @@ const {
   commit,
   rollback,
   beginTransaction,
-  checkSessionExist,
-  checkSeatIdExist,
   changeSeatsToSold,
   getPriceBySeatIds,
   insertOrder,
   insertOrderDetail,
 } = require('../models/order.model');
+
+const { checkSessionExist, checkSeatIdExist } = require('../util/utils');
 
 async function placeOrder(req, res) {
   const sessionId = req.body.sessionId;

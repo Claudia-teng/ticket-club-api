@@ -37,18 +37,6 @@ async function getSeatsStatus(sessionId, seatIds) {
   return rows;
 }
 
-async function checkSessionExist(sessionId) {
-  let sql = 'SELECT * FROM session WHERE id = ?';
-  const [rows] = await pool.execute(sql, [sessionId]);
-  return rows.length ? true : false;
-}
-
-async function checkAreaExist(areaId) {
-  let sql = 'SELECT * FROM area WHERE id = ?';
-  const [rows] = await pool.execute(sql, [areaId]);
-  return rows.length ? true : false;
-}
-
 async function changeSeatsToLock(sessionId, seatIds, userId) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `UPDATE seat_status SET status_id = '2', user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
@@ -91,8 +79,6 @@ module.exports = {
   rollback,
   findSeatIds,
   getSeatsStatus,
-  checkSessionExist,
-  checkAreaExist,
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,

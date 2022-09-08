@@ -5,6 +5,7 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
+const { checkSessionExist } = require('./util/utils');
 const { disconnectFromQueue, disconnectFromEvent } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const { socketIsAuth } = require('./util/auth');
@@ -40,6 +41,8 @@ io.on('connection', (socket) => {
   let chatroom;
   socket.on('check limit', async (sessionId) => {
     if (!socket.userId) return io.to(socket.id).emit('check limit', null);
+    const sessionExist = await checkSessionExist(sessionId);
+    if (!sessionExist) return;
     const result = await rateLimiter(sessionId, socket.userId, limit);
     // console.log('result', result);
     userIdSocket[socket.userId] = {
