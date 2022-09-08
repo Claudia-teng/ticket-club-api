@@ -31,7 +31,7 @@ async function getAreaBySessionId(req, res) {
     data[area.price].push({
       id: area.id,
       area: area.name,
-      seats: area.seats,
+      seats: area.seats ? area.seats : 0,
     });
   });
 

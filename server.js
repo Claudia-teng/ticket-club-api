@@ -73,12 +73,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('lock seat', (data) => {
-    // console.log('lock seat', data);
+    console.log('lock seat', data);
     socket.to(chatroom).emit('lock seat', data);
   });
 
   socket.on('book seat', (data) => {
-    // console.log('book seat', data);
+    console.log('book seat', data);
     socket.to(chatroom).emit('book seat', data);
   });
 
@@ -104,10 +104,12 @@ io.on('connection', (socket) => {
     if (!isInQueue) {
       const users = await disconnectFromEvent(sessionId, userId, timeStamp, limit);
       // no users waiting
+      console.log('users', users);
       if (!users.length) return;
       // update isInQueue & timeStamp for togoUser & notify
       const togoUser = users.shift();
       const togoUserId = togoUser.userId;
+      console.log('togoUserId', togoUserId);
       userIdSocket[togoUserId].isInQueue = false;
       userIdSocket[togoUserId].timeStamp = togoUser.timeStamp;
       const targetSocketId = userIdSocket[togoUserId].socketId;

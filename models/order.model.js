@@ -23,15 +23,9 @@ async function findSeatIds(row, column, areaId) {
 }
 
 async function getSeatsStatus(sessionId, seatIds) {
+  console.log('order');
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `SELECT seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
-  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
-  return rows;
-}
-
-async function changeSeatsToLock(sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '2' WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   return rows;
 }
@@ -94,7 +88,6 @@ module.exports = {
   rollback,
   findSeatIds,
   getSeatsStatus,
-  changeSeatsToLock,
   changeSeatsToSold,
   getSessionInfo,
   getSeatInfo,

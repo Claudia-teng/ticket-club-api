@@ -31,6 +31,7 @@ async function findSeatIds(row, column, areaId) {
 }
 
 async function getSeatsStatus(sessionId, seatIds) {
+  console.log('seat');
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `SELECT seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
@@ -38,9 +39,10 @@ async function getSeatsStatus(sessionId, seatIds) {
 }
 
 async function changeSeatsToLock(sessionId, seatIds, userId) {
+  console.log('userId', userId);
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `UPDATE seat_status SET status_id = '2', user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [sessionId, userId, ...seatIds]);
+  const [rows] = await pool.execute(sql, [userId, sessionId, ...seatIds]);
   return rows;
 }
 
