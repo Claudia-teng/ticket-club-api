@@ -1,3 +1,5 @@
+const pool = require('../service/db');
+
 async function checkSessionExist(sessionId) {
   let sql = 'SELECT * FROM session WHERE id = ?';
   const [rows] = await pool.execute(sql, [sessionId]);
