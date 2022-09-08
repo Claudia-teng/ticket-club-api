@@ -14,37 +14,37 @@ async function signup(req, res) {
   let { name, email, password } = req.body;
   if (!name) {
     return res.status(400).json({
-      error: 'Name is required.',
+      error: '請輸入使用者名稱',
     });
   }
 
-  if (!validator.isByteLength(name, { max: 15 })) {
+  if (!validator.isByteLength(name, { max: 30 })) {
     return res.status(400).json({
-      error: 'Please choose a shorter name.',
+      error: '使用者名稱過長',
     });
   }
 
   if (!email) {
     return res.status(400).json({
-      error: 'Email is required.',
+      error: '請輸入Email',
     });
   }
 
   if (!validator.isEmail(email)) {
     return res.status(400).json({
-      error: 'Please enter a valid email.',
+      error: 'Email格式錯誤',
     });
   }
 
   if (!password) {
     return res.status(400).json({
-      error: 'Password is required.',
+      error: '請輸入密碼',
     });
   }
 
   if (!validator.isLength(password, { min: 6 })) {
     return res.status(400).json({
-      error: 'Password must be at least 6 characters.',
+      error: '密碼至少6個字符',
     });
   }
 
@@ -52,7 +52,7 @@ async function signup(req, res) {
     const rows = await checkUserExistByEmail(email);
     if (rows.length) {
       return res.status(403).json({
-        error: 'This email has been signed up before.',
+        error: '此Email已註冊過',
       });
     }
     password = await bcrypt.hash(password, 10);
@@ -72,7 +72,7 @@ async function signup(req, res) {
   } catch (err) {
     console.log('err', err);
     return res.status(400).json({
-      error: 'MySQL error.',
+      error: '系統錯誤，請稍後再試',
     });
   }
 }
@@ -81,19 +81,19 @@ async function signin(req, res) {
   let { email, password } = req.body;
   if (!email) {
     return res.status(400).json({
-      error: 'Email is required.',
+      error: '請輸入Email',
     });
   }
 
   if (!validator.isEmail(email)) {
     return res.status(400).json({
-      error: 'Please enter a valid email.',
+      error: 'Email格式錯誤',
     });
   }
 
   if (!password) {
     return res.status(400).json({
-      error: 'Password is required.',
+      error: '請輸入密碼',
     });
   }
 
@@ -103,7 +103,7 @@ async function signin(req, res) {
 
     if (!rows.length) {
       return res.status(403).json({
-        error: 'This email has not been signed up yet.',
+        error: '此Email尚未註冊',
       });
     }
 
@@ -111,7 +111,7 @@ async function signin(req, res) {
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) {
       return res.status(403).json({
-        error: 'Your email or password is incorrect.',
+        error: '帳號或密碼錯誤',
       });
     }
 
@@ -130,13 +130,12 @@ async function signin(req, res) {
   } catch (err) {
     console.log('err', err);
     return res.status(400).json({
-      error: 'MySQL error.',
+      error: '系統錯誤，請稍後再試',
     });
   }
 }
 
 async function getProfile(req, res) {
-  // todo - total
   try {
     const id = req.user.id;
     const rows = await getUserProfile(id);
@@ -175,7 +174,7 @@ async function getProfile(req, res) {
   } catch (err) {
     console.log('err', err);
     return res.status(400).json({
-      error: 'MySQL error.',
+      error: '系統錯誤，請稍後再試',
     });
   }
 }

@@ -1,11 +1,20 @@
 const { getAreaIds, getSeatsByAreaIds } = require('../models/area.model');
 
 async function getAreaBySessionId(req, res) {
-  // todo - validate
-
   const sessionId = req.params.id;
+  if (!sessionId) {
+    return res.status(400).json({
+      error: 'Please provide session ID.',
+    });
+  }
 
   let areas = await getAreaIds(sessionId);
+  if (!areas.length) {
+    return res.status(400).json({
+      error: 'Please provide valid session ID.',
+    });
+  }
+
   let areaIds = areas.map((area) => area.id).join(', ');
   const seats = await getSeatsByAreaIds(areaIds, sessionId);
   let availableSeats = {};

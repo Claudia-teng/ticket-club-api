@@ -6,17 +6,35 @@ const {
   rollback,
   findSeatIds,
   getSeatsStatus,
+  checkSessionExist,
+  checkAreaExist,
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
   changeSeatsToEmpty,
 } = require('../models/seat.model');
-async function getSeatsByAreaId(req, res) {
-  // todo - validation
 
+async function getSeatsByAreaId(req, res) {
   const sessionId = req.body.sessionId;
+  if (!sessionId) {
+    return res.status(400).json({
+      error: 'Please provide session ID.',
+    });
+  }
+
   const areaId = req.body.areaId;
+  if (!areaId) {
+    return res.status(400).json({
+      error: 'Please provide area ID.',
+    });
+  }
+
   const seats = await getSeats(sessionId, areaId);
+  if (!seats.length) {
+    return res.status(400).json({
+      error: `Please provide valid session ID(${sessionId}) & area ID(${areaId}).`,
+    });
+  }
 
   let map = {};
   seats.forEach((seat) => {
@@ -30,17 +48,51 @@ async function getSeatsByAreaId(req, res) {
 }
 
 async function lockSeats(req, res) {
-  // todo - validations
-  // check only 4 user ids
-
   const sessionId = req.body.sessionId;
+  if (!sessionId) {
+    return res.status(400).json({
+      error: 'Please provide session ID.',
+    });
+  }
+
+  const sessionExist = await checkSessionExist(sessionId);
+  if (!sessionExist) {
+    return res.status(400).json({
+      error: 'Please provide a valid session ID.',
+    });
+  }
+
   const areaId = req.body.areaId;
+  if (!areaId) {
+    return res.status(400).json({
+      error: 'Please provide an area ID.',
+    });
+  }
+
+  const areaExist = await checkAreaExist(areaId);
+  if (!areaExist) {
+    return res.status(400).json({
+      error: 'Please provide a valid area ID.',
+    });
+  }
+
   const seats = req.body.tickets;
+  if (seats.length > 4) {
+    return res.status(400).json({
+      error: 'You can only buy 4 tickets one time.',
+    });
+  }
+
   // console.log(sessionId, areaId, seats);
 
   let seatIds = [];
   for (const seat of seats) {
     const seatId = await findSeatIds(seat.row, seat.column, areaId);
+    if (!seatId) {
+      return res.status(400).json({
+        error: `Can not find row ${seat.row}, column ${seat.column} in area ${areaId}`,
+      });
+    }
     seatIds.push(seatId);
   }
 
@@ -57,7 +109,8 @@ async function lockSeats(req, res) {
         });
       }
     }
-    await changeSeatsToLock(sessionId, seatIds);
+
+    await changeSeatsToLock(sessionId, seatIds, req.user.id);
     await commit(connection);
 
     const sessionInfo = await getSessionInfo(sessionId);
@@ -97,9 +150,25 @@ async function lockSeats(req, res) {
 async function unlockSeats(data) {
   try {
     const seatIds = [];
+    if (!data.tickets) {
+      console.log('No tickets received.');
+      return;
+    }
+
     for (let seat of data.tickets) {
       seatIds.push(seat.seatId);
     }
+
+    if (!data.sessionId) {
+      console.log('Please provide session ID.');
+      return;
+    }
+
+    if (!seatIds.length) {
+      console.log('Please provide at least one seat to unlock.');
+      return;
+    }
+
     await changeSeatsToEmpty(data.sessionId, seatIds);
   } catch (err) {
     console.log('err', err);

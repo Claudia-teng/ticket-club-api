@@ -15,7 +15,19 @@ async function getAllEvents(req, res) {
 
 async function getEventDetail(req, res) {
   const eventId = req.params.id;
+  if (!eventId) {
+    return res.status(400).json({
+      error: 'Please provide an event ID.',
+    });
+  }
+
   const events = await getEventById(eventId);
+  if (!events.length) {
+    return res.status(400).json({
+      error: 'Please provide a valid event ID.',
+    });
+  }
+
   const event = events[0];
   const sessions = [];
   events.forEach((event) => {
