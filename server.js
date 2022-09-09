@@ -106,9 +106,10 @@ io.on('connection', (socket) => {
       const users = await disconnectFromEvent(sessionId, userId, timeStamp, limit);
       // no users waiting
       if (!users.length) return;
-      // update isInQueue & timeStamp for togoUser & notify
+      // update timeStamp for togoUser & notify
       const togoUser = users.shift();
       const togoUserId = togoUser.userId;
+      userIdSocket[togoUserId].timeStamp = togoUser.timeStamp;
       const togoUserSocketId = userIdSocket[togoUserId].socketId;
       io.to(togoUserSocketId).emit('ready to go');
       // emit to all users in queue

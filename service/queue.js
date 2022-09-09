@@ -59,6 +59,7 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
     const togoUser = results.shift();
     notifyUsers.push({
       userId: togoUser.split(':')[0],
+      timeStamp: currentTimeStamp,
     });
     results.forEach((result) => {
       const queueRound = result.split(',')[2];
