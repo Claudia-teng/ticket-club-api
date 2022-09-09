@@ -1,7 +1,11 @@
 const redis = require('../service/cache');
 
+async function checkIsInQueue(userId, sessionId) {
+  const queue = await redis.lrange(`${sessionId}-queue`, 0, -1);
+  return queue.includes(String(userId)) ? true : false;
+}
+
 async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
-  // todo - validation
   // remove user from event
   // move first user in queue to event
   // get all users in queue
@@ -13,24 +17,25 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
       redis.call("LREM", eventKey, 1, ARGV[1])
 
       local notifyUsers = {}
-      local togoUserInfo = redis.call("LPOP", eventQueueKey)
+      local togoUserId = redis.call("LPOP", eventQueueKey)
 
-      if (togoUserInfo) then
-        local togoUserId = string.match(togoUserInfo, "(.-):")
+      if (togoUserId) then
         local timeStamp = ARGV[2]
         local togoUser = togoUserId .. ":" .. timeStamp
         redis.call("RPUSH", eventKey, togoUser)
         table.insert(notifyUsers, togoUser)
 
         local eventQueueLength = redis.call("LLEN", eventQueueKey)
-        for i = 0, eventQueueLength - 1 do
-          local self = redis.call("LINDEX", eventQueueKey, i)
-          local queueRound = math.floor(i / limit);
-          local targetIndex = 0
-          local targetUser = 0
-          targetIndex = i % limit;
-          targetUser = redis.call("LINDEX", eventKey, targetIndex)
-          table.insert(notifyUsers, self .. "," .. targetUser .. "," .. queueRound .. ",")
+        if (eventQueueLength > 0) then 
+          for i = 0, eventQueueLength - 1 do
+            local self = redis.call("LINDEX", eventQueueKey, i)
+            local queueRound = math.floor(i / limit);
+            local targetIndex = 0
+            local targetUser = 0
+            targetIndex = i % limit;
+            targetUser = redis.call("LINDEX", eventKey, targetIndex)
+            table.insert(notifyUsers, self .. "," .. targetUser .. "," .. queueRound .. ",")
+          end
         end
       end
 
@@ -48,22 +53,22 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
       currentTimeStamp,
       limit
     );
-    // console.log('results', results);
+    console.log('results', results);
     const notifyUsers = [];
     if (!results.length) return notifyUsers;
     const togoUser = results.shift();
     notifyUsers.push({
       userId: togoUser.split(':')[0],
-      timeStamp: currentTimeStamp,
     });
     results.forEach((result) => {
       const queueRound = result.split(',')[2];
       let milliseconds = +result.split(',')[1].split(':')[1];
       if (queueRound) milliseconds = queueRound * (600 * 1000) + milliseconds;
+      const expires = +milliseconds + 600 * 1000;
+      const seconds = Math.floor((expires - new Date().getTime()) / 1000) + 10;
       notifyUsers.push({
         userId: result.split(',')[0].split(':')[0],
-        timeStamp: result.split(',')[0].split(':')[1],
-        milliseconds,
+        seconds,
       });
     });
     return notifyUsers;
@@ -73,7 +78,6 @@ async function disconnectFromEvent(sessionId, userId, timeStamp, limit) {
 }
 
 async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
-  // todo - validation
   // remove left user & get all users behind the left user
   await redis.defineCommand('disconnectFromQueue', {
     lua: `
@@ -103,23 +107,18 @@ async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
   });
 
   try {
-    const results = await redis.disconnectFromQueue(
-      2,
-      sessionId,
-      `${sessionId}-queue`,
-      `${userId}:${timeStamp}`,
-      limit
-    );
+    const results = await redis.disconnectFromQueue(2, sessionId, `${sessionId}-queue`, userId, limit);
     console.log('results', results);
     const notifyUsers = [];
     results.forEach((result) => {
       const queueRound = result.split(',')[2];
       let milliseconds = +result.split(',')[1].split(':')[1];
       if (queueRound) milliseconds = queueRound * (600 * 1000) + milliseconds;
+      const expires = +milliseconds + 600 * 1000;
+      const seconds = Math.floor((expires - new Date().getTime()) / 1000) + 10;
       notifyUsers.push({
         userId: result.split(',')[0].split(':')[0],
-        timeStamp: result.split(',')[0].split(':')[1],
-        milliseconds,
+        seconds,
       });
     });
     return notifyUsers;
@@ -129,6 +128,7 @@ async function disconnectFromQueue(sessionId, userId, timeStamp, limit) {
 }
 
 module.exports = {
+  checkIsInQueue,
   disconnectFromQueue,
   disconnectFromEvent,
 };
