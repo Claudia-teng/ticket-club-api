@@ -9,12 +9,12 @@ const pool = mysql.createPool({
 });
 
 async function insertSeat() {
-  let count = 2187;
+  let count = 6561;
   for (let i = 1; i <= 729; i++) {
     count++;
     let sql = 'INSERT INTO seat_status (`id`, `session_id`, `seat_id`, `status_id`) VALUES (?, ?, ?, ?)';
     // console.log("[count, 1, i, 1]", [count, 1, i, 1]);
-    await pool.execute(sql, [count, 4, i, 1]);
+    await pool.execute(sql, [count, 10, i, 1]);
   }
   console.log('success');
 }

@@ -1,9 +1,11 @@
+require('dotenv').config();
 const { selectAllEvents, getEventById } = require('../models/event.model');
 
 async function getAllEvents(req, res) {
   const searchText = req.query.search;
   try {
-    const events = await selectAllEvents(searchText);
+    let events = await selectAllEvents(searchText);
+    events.map((event) => (event.picture = `${process.env.SERVER_IMAGE_PATH}/${event.picture}`));
     return res.status(200).json(events);
   } catch (err) {
     console.log('err', err);
@@ -39,8 +41,9 @@ async function getEventDetail(req, res) {
     });
   });
   const data = {
+    singer: event.singer,
     title: event.title,
-    picture: event.picture,
+    detailPicture: `${process.env.SERVER_IMAGE_PATH}/${event.detailPicture}`,
     description: event.description,
     videoLink: event.video_link,
     sessions,

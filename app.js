@@ -7,6 +7,7 @@ const api = require('./routes/api');
 app.use(express.json());
 // app.use(cors());
 app.use('/', api);
+app.use(express.static('public'));
 
 app.use(function (req, res) {
   res.status(404).json({
