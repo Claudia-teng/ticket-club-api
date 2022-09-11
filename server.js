@@ -20,9 +20,7 @@ const limit = 3;
 // {
 //   userId: {
 //     socketId: 1,
-//     sessionId: 1,
-//     isInQueue: true
-//     timeStamp: 123,
+//     sessionId: 1
 //   }
 // };
 
