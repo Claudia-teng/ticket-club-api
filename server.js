@@ -6,7 +6,7 @@ const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
 const { checkSessionExist } = require('./util/utils');
-const { checkIsInQueue, disconnectFromQueue, disconnectFromEvent } = require('./service/queue');
+const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const { socketIsAuth } = require('./util/auth');
 const io = new Server(httpServer, {
@@ -41,15 +41,18 @@ io.on('connection', (socket) => {
   let chatroom;
   socket.on('check limit', async (sessionId) => {
     // user not login
-    if (!socket.userId) return io.to(socket.id).emit('check limit', null);
+    if (!socket.userId) return io.to(socket.id).emit('check limit', 'not login');
     const sessionExist = await checkSessionExist(sessionId);
     if (!sessionExist) return io.to(socket.id).emit('check limit', 'Please provide valid session ID.');
     const result = await rateLimiter(sessionId, socket.userId, limit);
     // console.log('result', result);
+    // user is already in event or queue
+    if (!result) {
+      io.to(socket.id).emit('check limit', 'duplicate');
+    }
     userIdSocket[socket.userId] = {
       socketId: socket.id,
       sessionId: sessionId,
-      timeStamp: result.timeStamp,
     };
     // console.log('userIdSocket', userIdSocket);
     io.to(socket.id).emit('check limit', result);
@@ -98,39 +101,30 @@ io.on('connection', (socket) => {
     const userId = socket.userId;
     if (!userIdSocket[userId]) return;
     const sessionId = userIdSocket[userId].sessionId;
-    const timeStamp = userIdSocket[userId].timeStamp;
-    const isInQueue = await checkIsInQueue(userId, sessionId);
+    const result = await disconnectFromPage(sessionId, userId, limit);
+    const isInQueue = result.inQueue;
+    const notifyUsers = result.notifyUsers;
 
     if (!isInQueue) {
-      console.log('notInQueue');
-      const users = await disconnectFromEvent(sessionId, userId, timeStamp, limit);
+      console.log('inEvent');
       // no users waiting
-      if (!users.length) return;
+      if (!notifyUsers.length) return;
       // update timeStamp for togoUser & notify
-      const togoUser = users.shift();
+      const togoUser = notifyUsers.shift();
       const togoUserId = togoUser.userId;
-      userIdSocket[togoUserId].timeStamp = togoUser.timeStamp;
       const togoUserSocketId = userIdSocket[togoUserId].socketId;
       io.to(togoUserSocketId).emit('ready to go');
-      // emit to all users in queue
-      for (const user of users) {
-        const socketId = userIdSocket[user.userId].socketId;
-        const data = {
-          seconds: user.seconds,
-        };
-        io.to(socketId).emit('minus waiting people', data);
-      }
     } else {
-      console.log('isInQueue');
-      const users = await disconnectFromQueue(sessionId, userId, timeStamp, limit);
-      // console.log('users', users);
-      for (const user of users) {
-        const socketId = userIdSocket[user.userId].socketId;
-        const data = {
-          seconds: user.seconds,
-        };
-        io.to(socketId).emit('minus waiting people', data);
-      }
+      console.log('inQueue');
+    }
+
+    // emit to all users in queue
+    for (const user of notifyUsers) {
+      const socketId = userIdSocket[user.userId].socketId;
+      const data = {
+        seconds: user.seconds,
+      };
+      io.to(socketId).emit('minus waiting people', data);
     }
   });
 });

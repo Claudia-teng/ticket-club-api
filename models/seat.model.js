@@ -40,6 +40,7 @@ async function getSeatsStatus(sessionId, seatIds) {
 
 async function changeSeatsToLock(sessionId, seatIds, userId) {
   console.log('userId', userId);
+  console.log('sessionId', sessionId);
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `UPDATE seat_status SET status_id = '2', user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [userId, sessionId, ...seatIds]);

@@ -34,7 +34,7 @@ async function placeOrder(req, res) {
   }
 
   for (let seatId of seatIds) {
-    const seats = await checkSeatIdExist(seatId);
+    const seats = await checkSeatIdExist(seatId, sessionId);
     if (!seats.length) {
       return res.status(400).json({
         error: `Seat ID(${seatId}) is not existed.`,
