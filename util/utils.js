@@ -1,6 +1,12 @@
 const pool = require('../service/db');
 
-async function checkSession(sessionId) {
+async function checkSessionExist(sessionId) {
+  let sql = 'SELECT * FROM session WHERE id = ?';
+  const [rows] = await pool.execute(sql, [sessionId]);
+  return rows.length ? true : false;
+}
+
+async function validateSessionTime(sessionId) {
   let sql = 'SELECT time FROM session WHERE id = ?';
   const [rows] = await pool.execute(sql, [sessionId]);
   return rows;
@@ -27,7 +33,8 @@ async function checkOnSaleTime(sessionId) {
 }
 
 module.exports = {
-  checkSession,
+  checkSessionExist,
+  validateSessionTime,
   checkAreaExist,
   checkSeatIdExist,
   checkOnSaleTime,

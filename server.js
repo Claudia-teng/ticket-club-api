@@ -5,7 +5,7 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats } = require('./controllers/seat.controller');
-const { checkSession, checkOnSaleTime } = require('./util/utils');
+const { validateSessionTime, checkOnSaleTime } = require('./util/utils');
 const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const { socketIsAuth } = require('./util/auth');
@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
   socket.on('check limit', async (sessionId) => {
     if (!socket.userId) return io.to(socket.id).emit('check limit', 'Not login');
 
-    const session = await checkSession(sessionId);
+    const session = await validateSessionTime(sessionId);
     if (!session.length) {
       return io.to(socket.id).emit('check limit', 'Please provide valid session ID.');
     }
