@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
     // console.log('result', result);
     // user is already in event or queue
     if (!result) {
-      io.to(socket.id).emit('check limit', 'duplicate');
+      io.to(socket.id).emit('check limit', 'Duplicate');
     }
     userIdSocket[socket.userId] = {
       socketId: socket.id,
