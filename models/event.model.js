@@ -13,7 +13,7 @@ async function selectAllEvents(searchText) {
 
 async function getEventById(id) {
   let sql = `
-    SELECT e.singer, e.title, e.detail_picture AS detailPicture, e.description, e.video_link, s.id, s.time, v.city, v.name AS venue
+    SELECT e.singer, e.title, e.detail_picture AS detailPicture, e.description, e.video_link, e.on_sale, s.id, s.time, v.city, v.name AS venue
     FROM event e
     JOIN session s ON e.id = s.event_id
     JOIN venue v ON s.venue_id = v.id

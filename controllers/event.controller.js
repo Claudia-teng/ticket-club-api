@@ -46,6 +46,7 @@ async function getEventDetail(req, res) {
     detailPicture: `${process.env.SERVER_IMAGE_PATH}/${event.detailPicture}`,
     description: event.description,
     videoLink: event.video_link,
+    onSale: event.on_sale,
     sessions,
   };
   return res.status(200).json(data);

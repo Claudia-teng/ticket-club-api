@@ -1,9 +1,9 @@
 const pool = require('../service/db');
 
-async function checkSessionExist(sessionId) {
-  let sql = 'SELECT * FROM session WHERE id = ?';
+async function checkSession(sessionId) {
+  let sql = 'SELECT time FROM session WHERE id = ?';
   const [rows] = await pool.execute(sql, [sessionId]);
-  return rows.length ? true : false;
+  return rows;
 }
 
 async function checkAreaExist(areaId) {
@@ -18,8 +18,17 @@ async function checkSeatIdExist(seatId, sessionId) {
   return rows;
 }
 
+async function checkOnSaleTime(sessionId) {
+  let sql = `SELECT on_sale FROM event e
+    JOIN session s ON s.event_id = e.id
+    WHERE s.id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId]);
+  return new Date(rows[0].on_sale).getTime() <= new Date().getTime();
+}
+
 module.exports = {
-  checkSessionExist,
+  checkSession,
   checkAreaExist,
   checkSeatIdExist,
+  checkOnSaleTime,
 };
