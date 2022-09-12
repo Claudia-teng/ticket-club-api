@@ -4,7 +4,8 @@ async function disconnectFromPage(sessionId, userId, limit) {
   await redis.defineCommand('disconnectFromPage', {
     lua: `
       local eventKey = KEYS[1]
-      local eventQueueKey = KEYS[2]
+      local eventTime = KEYS[2]
+      local eventQueueKey = KEYS[3]
       local userId = ARGV[1]
       local currentTimeStamp = ARGV[2]
       local limit = tonumber(ARGV[3])
@@ -26,14 +27,14 @@ async function disconnectFromPage(sessionId, userId, limit) {
             local time = 0
             targetIndex = i % limit;
             targetUserId = redis.call("LINDEX", eventKey, targetIndex)
-            time = redis.call("GET", 'user' .. targetUserId)
+            time = redis.call("HGET", eventTime, targetUserId)
             table.insert(notifyUsers, self .. "," .. time .. "," .. queueRound .. ",")
           end
         end
         return notifyUsers
       else
         redis.call("LREM", eventKey, 1, userId)
-        redis.call("DEL", 'user'.. userId)
+        redis.call("HDEL", eventTime, userId)
 
         local notifyUsers = {}
         table.insert(notifyUsers, 'false')
@@ -41,7 +42,7 @@ async function disconnectFromPage(sessionId, userId, limit) {
 
         if (togoUserId) then
           redis.call("RPUSH", eventKey, togoUserId)
-          redis.call("SET", 'user' .. togoUserId, currentTimeStamp)
+          redis.call("HSET", eventTime, togoUserId, currentTimeStamp)
           table.insert(notifyUsers, togoUserId)
 
           local eventQueueLength = redis.call("LLEN", eventQueueKey)
@@ -54,7 +55,7 @@ async function disconnectFromPage(sessionId, userId, limit) {
               local time = 0
               targetIndex = i % limit;
               targetUserId = redis.call("LINDEX", eventKey, targetIndex)
-              time = redis.call("GET", 'user' .. targetUserId)
+              time = redis.call("HGET", eventTime, targetUserId)
               table.insert(notifyUsers, self .. "," .. time .. "," .. queueRound .. ",")
             end
           end
@@ -66,7 +67,15 @@ async function disconnectFromPage(sessionId, userId, limit) {
 
   const currentTimeStamp = new Date().getTime();
   try {
-    const results = await redis.disconnectFromPage(2, sessionId, `${sessionId}-queue`, userId, currentTimeStamp, limit);
+    const results = await redis.disconnectFromPage(
+      3,
+      sessionId,
+      `${sessionId}-time`,
+      `${sessionId}-queue`,
+      userId,
+      currentTimeStamp,
+      limit
+    );
     console.log('results', results);
     let inQueue;
     if (results.shift() === 'true') {

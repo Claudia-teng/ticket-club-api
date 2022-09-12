@@ -3,34 +3,35 @@ const redis = require('../service/cache');
 async function rateLimiter(sessionId, userId, limit) {
   await redis.defineCommand('rateLimiter', {
     lua: `
+      local eventKey = KEYS[1]
+      local eventTime = KEYS[2]
+      local eventQueueKey = KEYS[3]
       local userId = ARGV[1]
       local currentTimeStamp = ARGV[2]
       local limit = tonumber(ARGV[3])
-      local eventLength = redis.call("LLEN", KEYS[1])
+      local eventLength = redis.call("LLEN", eventKey)
       local waitPeople = 0
       local time = 0
       local queueRound = 0
       
-      local eventIndex = redis.call("LPOS", KEYS[1], userId)
-      local eventQueueIndex = redis.call("LPOS", KEYS[2], userId)
+      local eventIndex = redis.call("LPOS", eventKey, userId)
+      local eventQueueIndex = redis.call("LPOS", eventQueueKey, userId)
       if (eventIndex or eventQueueIndex) then 
         return 'false'
       else 
         if (eventLength >= limit) then
           local index = 0
-          local queueLength = redis.call("LLEN", KEYS[2])
+          local queueLength = redis.call("LLEN", eventQueueKey)
           waitPeople = queueLength + 1
           queueRound = math.floor(queueLength / limit)
           index = queueLength % limit
           
-          local targetUserId = redis.call("LINDEX", KEYS[1], index)
-          local userIdKey = 'user' .. targetUserId
-          time = redis.call("GET", userIdKey)
-          redis.call("RPUSH", KEYS[2], userId)
+          local targetUserId = redis.call("LINDEX", eventKey, index)
+          redis.call("RPUSH", eventQueueKey, userId)
+          time = redis.call("HGET", eventTime, targetUserId)
         else
-          redis.call("RPUSH", KEYS[1], userId)
-          local userIdKey = 'user' .. userId
-          redis.call("SET", userIdKey, currentTimeStamp)
+          redis.call("RPUSH", eventKey, userId)
+          time = redis.call("HSET", eventTime, userId, currentTimeStamp)
         end
         return "," .. eventLength .. "," .. waitPeople .. "," .. time .. "," .. queueRound .. ","
       end
@@ -39,7 +40,15 @@ async function rateLimiter(sessionId, userId, limit) {
 
   try {
     const currentTimeStamp = new Date().getTime();
-    const result = await redis.rateLimiter(2, sessionId, `${sessionId}-queue`, userId, currentTimeStamp, limit);
+    const result = await redis.rateLimiter(
+      3,
+      sessionId,
+      `${sessionId}-time`,
+      `${sessionId}-queue`,
+      userId,
+      currentTimeStamp,
+      limit
+    );
     console.log('result', result);
     // user is already in event or queue
     if (result === 'false') return false;
