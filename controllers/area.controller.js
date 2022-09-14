@@ -1,4 +1,5 @@
-const { getAreaIds, getSeatsByAreaIds } = require('../models/area.model');
+require('dotenv').config();
+const { getSeatPicture, getAreaIds, getSeatsByAreaIds } = require('../models/area.model');
 
 async function getAreaBySessionId(req, res) {
   const sessionId = req.params.id;
@@ -15,6 +16,7 @@ async function getAreaBySessionId(req, res) {
     });
   }
 
+  let seatPicture = await getSeatPicture(sessionId);
   let areaIds = areas.map((area) => area.id).join(', ');
   const seats = await getSeatsByAreaIds(areaIds, sessionId);
   let availableSeats = {};
@@ -35,6 +37,7 @@ async function getAreaBySessionId(req, res) {
     });
   });
 
+  data.seatPicture = `${process.env.SERVER_IMAGE_PATH}/${seatPicture}`;
   return res.status(200).json(data);
 }
 

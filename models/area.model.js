@@ -1,5 +1,11 @@
 const pool = require('../service/db');
 
+async function getSeatPicture(sessionId) {
+  let sql = `SELECT * FROM session WHERE id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId]);
+  return rows[0].seat_picture;
+}
+
 async function getAreaIds(sessionId) {
   let sql = `SELECT a.id, a.name, p.price FROM session s
     JOIN venue v on v.id = s.venue_id 
@@ -21,6 +27,7 @@ async function getSeatsByAreaIds(areaIds, sessionId) {
 }
 
 module.exports = {
+  getSeatPicture,
   getAreaIds,
   getSeatsByAreaIds,
 };
