@@ -38,7 +38,7 @@ CREATE TABLE `area` (
 
 LOCK TABLES `area` WRITE;
 /*!40000 ALTER TABLE `area` DISABLE KEYS */;
-INSERT INTO `area` VALUES (1,1,'1樓A區'),(2,1,'1樓B區'),(3,1,'1樓C區'),(4,1,'2樓A區'),(5,1,'2樓B區'),(6,1,'2樓C區'),(7,1,'3樓A區'),(8,1,'3樓B區'),(9,1,'3樓C區');
+INSERT INTO `area` VALUES (1,1,'1樓特一區'),(2,1,'1樓特二區'),(3,1,'1樓特三區'),(4,1,'2樓特一區'),(5,1,'2樓特二區'),(6,1,'2樓特三區'),(7,1,'3樓特一區'),(8,1,'3樓特二區'),(9,1,'3樓特三區');
 /*!40000 ALTER TABLE `area` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -318,4 +318,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-09-14 21:50:32
+-- Dump completed on 2022-09-14 22:10:58
