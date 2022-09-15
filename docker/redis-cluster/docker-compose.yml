@@ -6,21 +6,18 @@ services:
     ports:
       - 7000:7000
       - 17000:17000
-    entrypoint:
-      ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7000', --cluster-announce-ip, '${HOST_IP}', --requirepass, '${REDIS_PASS}']
+    entrypoint: ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7000', --cluster-announce-ip, '${HOST_IP}']
   redis-node2:
     build:
       context: redis
     ports:
       - 7001:7001
       - 17001:17001
-    entrypoint:
-      ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7001', --cluster-announce-ip, '${HOST_IP}', --requirepass, '${REDIS_PASS}']
+    entrypoint: ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7001', --cluster-announce-ip, '${HOST_IP}']
   redis-node3:
     build:
       context: redis
     ports:
       - 7002:7002
       - 17002:17002
-    entrypoint:
-      ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7002', --cluster-announce-ip, '${HOST_IP}', --requirepass, '${REDIS_PASS}']
+    entrypoint: ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7002', --cluster-announce-ip, '${HOST_IP}']
