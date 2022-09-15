@@ -15,7 +15,7 @@ services:
 
   redis-node2:
     image: redis
-    container_name: redis-node1
+    container_name: redis-node2
     restart: always
     network_mode: 'host'
     ports:
@@ -27,7 +27,7 @@ services:
 
   redis-node3:
     image: redis
-    container_name: redis-node1
+    container_name: redis-node3
     restart: always
     network_mode: 'host'
     ports:
