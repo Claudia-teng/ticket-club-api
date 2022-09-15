@@ -1,24 +1,22 @@
 version: '3.4'
 services:
   redis-node1:
-    build:
-      context: redis
+    image: 'ticket-club-redis:latest'
+    container_name: redis-node1
     ports:
       - 7000:7000
       - 17000:17000
     entrypoint: ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7000', --cluster-announce-ip, '${HOST_IP}']
   redis-node2:
-    build:
-      context: redis
+    image: 'ticket-club-redis:latest'
+    container_name: redis-node2
     ports:
       - 7001:7001
       - 17001:17001
     entrypoint: ['sh', '-c', redis-server, /usr/local/etc/redis/redis.conf, --port, '7001', --cluster-announce-ip, '${HOST_IP}']
   redis-node3:
-    build:
-      context: redis
-    volumes:
-      - ./redis.conf:/etc/redis/redis.conf
+    image: 'ticket-club-redis:latest'
+    container_name: redis-node3
     ports:
       - 7002:7002
       - 17002:17002
