@@ -5,9 +5,7 @@ services:
     image: redis
     container_name: redis-node1
     restart: always
-    ports:
-      - 7000:7000
-      - 17000:17000
+    network_mode: 'host'
     volumes:
       - ./redis-7000.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf --port 7000
@@ -16,9 +14,7 @@ services:
     image: redis
     container_name: redis-node2
     restart: always
-    ports:
-      - 7001:7001
-      - 17001:17001
+    network_mode: 'host'
     volumes:
       - ./redis-7001.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf --port 7001
@@ -27,9 +23,7 @@ services:
     image: redis
     container_name: redis-node3
     restart: always
-    ports:
-      - 7002:7002
-      - 17002:17002
+    network_mode: 'host'
     volumes:
       - ./redis-7002.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf --port 7002
