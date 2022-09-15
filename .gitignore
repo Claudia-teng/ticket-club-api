@@ -1,4 +1,4 @@
 node_modules
 .DS_store
 .env
-user.acl
+redis.conf
