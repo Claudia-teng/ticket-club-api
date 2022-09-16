@@ -1,4 +1,4 @@
-const redis = require('../service/cache');
+const { redis } = require('../service/cache');
 
 async function rateLimiter(sessionId, userId, limit) {
   await redis.defineCommand('rateLimiter', {
@@ -42,9 +42,9 @@ async function rateLimiter(sessionId, userId, limit) {
     const currentTimeStamp = new Date().getTime();
     const result = await redis.rateLimiter(
       3,
-      sessionId,
-      `${sessionId}-time`,
-      `${sessionId}-queue`,
+      `{${sessionId}}:${sessionId}`,
+      `{${sessionId}}:${sessionId}-time`,
+      `{${sessionId}}:${sessionId}-queue`,
       userId,
       currentTimeStamp,
       limit

@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { createServer } = require('http');
+const { createAdapter } = require('@socket.io/redis-adapter');
 const { Server } = require('socket.io');
+const { pubClient, subClient } = require('./service/cache');
 const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
@@ -14,6 +16,8 @@ const io = new Server(httpServer, {
     origin: ['http://localhost:5000', 'https://claudia-teng.com'],
   },
 });
+
+io.adapter(createAdapter(pubClient, subClient));
 
 const userIdSocket = {};
 const limit = 3;

@@ -1,7 +1,7 @@
-const redis = require('../service/cache');
+const { pubClient } = require('../service/cache');
 
 async function disconnectFromPage(sessionId, userId, limit) {
-  await redis.defineCommand('disconnectFromPage', {
+  await pubClient.defineCommand('disconnectFromPage', {
     lua: `
       local eventKey = KEYS[1]
       local eventTime = KEYS[2]
@@ -67,11 +67,11 @@ async function disconnectFromPage(sessionId, userId, limit) {
 
   const currentTimeStamp = new Date().getTime();
   try {
-    const results = await redis.disconnectFromPage(
+    const results = await pubClient.disconnectFromPage(
       3,
-      sessionId,
-      `${sessionId}-time`,
-      `${sessionId}-queue`,
+      `{${sessionId}}:${sessionId}`,
+      `{${sessionId}}:${sessionId}-time`,
+      `{${sessionId}}:${sessionId}-queue`,
       userId,
       currentTimeStamp,
       limit
