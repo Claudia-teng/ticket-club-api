@@ -2,12 +2,7 @@ require('dotenv').config();
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 const pool = require('../service/db');
-const {
-  checkUserExistByEmail,
-  insertNewUser,
-  getUserProfile,
-  getOrderDetailByUserId,
-} = require('../models/user.model');
+const { checkUserExistByEmail, insertNewUser, getUserProfile, getOrderDetailByUserId } = require('../models/user.model');
 const { generateJwtToken } = require('../util/auth');
 
 async function signup(req, res) {
@@ -147,21 +142,26 @@ async function getProfile(req, res) {
         events[detail.session_id] = {
           session_id: detail.session_id,
           title: detail.title,
-          time: detail.title,
+          time: detail.time,
           venue: detail.venue,
           total: detail.price,
+          createdAt: detail.created_at,
           tickets: [
             {
-              name: detail.venue,
+              area: detail.area,
               price: detail.price,
+              row: detail.row,
+              column: detail.column,
             },
           ],
         };
       } else {
         events[detail.session_id].total += detail.price;
         events[detail.session_id].tickets.push({
-          name: detail.venue,
+          area: detail.area,
           price: detail.price,
+          row: detail.row,
+          column: detail.column,
         });
       }
     }
