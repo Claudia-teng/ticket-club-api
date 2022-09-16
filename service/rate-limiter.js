@@ -1,7 +1,7 @@
-const redis = require('../service/cache');
+const { pubClient } = require('../service/cache');
 
 async function rateLimiter(sessionId, userId, limit) {
-  await redis.defineCommand('rateLimiter', {
+  await pubClient.defineCommand('rateLimiter', {
     lua: `
       local eventKey = KEYS[1]
       local eventTime = KEYS[2]
@@ -40,11 +40,11 @@ async function rateLimiter(sessionId, userId, limit) {
 
   try {
     const currentTimeStamp = new Date().getTime();
-    const result = await redis.rateLimiter(
+    const result = await pubClient.rateLimiter(
       3,
-      sessionId,
-      `${sessionId}-time`,
-      `${sessionId}-queue`,
+      `{${sessionId}}:${sessionId}`,
+      `{${sessionId}}:${sessionId}-time`,
+      `{${sessionId}}:${sessionId}-queue`,
       userId,
       currentTimeStamp,
       limit
