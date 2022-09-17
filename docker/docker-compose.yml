@@ -4,6 +4,7 @@ services:
   web:
     image: 'ticket-club-web:latest'
     container_name: ticket-club-web
+    restart: always
     ports:
       - '3000:3000'
     env_file:
@@ -11,6 +12,7 @@ services:
   nginx:
     image: 'ticket-club-nginx:latest'
     container_name: ticket-club-nginx
+    restart: always
     ports:
       - '80:80'
     depends_on:
