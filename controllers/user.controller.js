@@ -166,7 +166,6 @@ async function getProfile(req, res) {
       }
     }
     const data = {
-      test: 'test',
       name: user.name,
       email: user.email,
       tickets: Object.values(events),
