@@ -7,10 +7,10 @@ files:
 file_exists_behavior: OVERWRITE
 hooks:
   AfterInstall:
-    - location: setup.sh
+    - location: aws/setup.sh
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: run.sh
+    - location: aws/run.sh
       timeout: 300
       runas: root
