@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    image: 'ticket-club-web:latest'
+    image: 'claudiateng/ticket-club-web'
     container_name: ticket-club-web
     restart: always
     ports:
@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
   nginx:
-    image: 'ticket-club-nginx:latest'
+    image: 'claudiateng/ticket-club-nginx'
     container_name: ticket-club-nginx
     restart: always
     ports:
