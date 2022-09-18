@@ -37,6 +37,6 @@ jobs:
       id: deploy
       run: |
         aws deploy create-deployment \
-          --application-name Claudia-teng/ticket-club-api \
+          --application-name ticket-club \
           --deployment-group-name AutoScaleDeploymentGroup \
           --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
