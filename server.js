@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
       console.log('inEvent');
       // no users waiting
       if (!notifyUsers.length) return;
-      // update timeStamp for togoUser & notify
+      // notify togoUser
       const togoUser = notifyUsers.shift();
       const togoUserId = togoUser.userId;
       const togoUserSocketId = userIdSocket[togoUserId].socketId;
