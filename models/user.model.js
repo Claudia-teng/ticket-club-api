@@ -27,7 +27,7 @@ async function getOrderDetailByUserId(userId) {
     JOIN seat se ON se.id = od.seat_id
     JOIN area a ON a.id = se.area_id
     WHERE user_id = ?
-    ORDER BY o.created_at DESC`;
+    ORDER BY o.created_at ASC`;
   const [rows] = await pool.execute(sql, [userId]);
   return rows;
 }
