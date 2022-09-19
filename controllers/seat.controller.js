@@ -5,6 +5,7 @@ const {
   commit,
   rollback,
   findSeatIds,
+  getUserTicketCount,
   getSeatsStatus,
   changeSeatsToLock,
   getSessionInfo,
@@ -83,7 +84,6 @@ async function lockSeats(req, res) {
   }
 
   // console.log(sessionId, areaId, seats);
-
   let seatIds = [];
   for (const seat of seats) {
     const seatId = await findSeatIds(seat.row, seat.column, areaId);
@@ -93,6 +93,22 @@ async function lockSeats(req, res) {
       });
     }
     seatIds.push(seatId);
+  }
+
+  let ticketLimitPerSession = 4;
+  let count = await getUserTicketCount(req.user.id, sessionId);
+  console.log('count', count);
+
+  if (count === ticketLimitPerSession) {
+    return res.status(400).json({
+      error: `此帳號已購買${ticketLimitPerSession}張門票`,
+    });
+  }
+
+  if (seatIds.length > 4 - count) {
+    return res.status(400).json({
+      error: `此帳號只能再購買${4 - count}張`,
+    });
   }
 
   const connection = await getPoolConnection();

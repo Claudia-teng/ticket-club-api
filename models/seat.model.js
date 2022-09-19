@@ -30,6 +30,12 @@ async function findSeatIds(row, column, areaId) {
   return rows[0].id;
 }
 
+async function getUserTicketCount(userId, sessionId) {
+  let sql = 'SELECT count(*) AS count from `order_detail` od JOIN `order` o on o.id = od.order_id WHERE user_id = ? && session_id = ?';
+  const [rows] = await pool.execute(sql, [userId, sessionId]);
+  return rows[0].count;
+}
+
 async function getSeatsStatus(sessionId, seatIds) {
   console.log('seat');
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
@@ -81,6 +87,7 @@ module.exports = {
   commit,
   rollback,
   findSeatIds,
+  getUserTicketCount,
   getSeatsStatus,
   changeSeatsToLock,
   getSessionInfo,
