@@ -101,13 +101,13 @@ async function lockSeats(req, res) {
 
   if (count === ticketLimitPerSession) {
     return res.status(400).json({
-      error: `此帳號已購買${ticketLimitPerSession}張門票`,
+      error: `此帳號已購買${ticketLimitPerSession}張門票！`,
     });
   }
 
   if (seatIds.length > 4 - count) {
     return res.status(400).json({
-      error: `此帳號只能再購買${4 - count}張`,
+      error: `此帳號只能再購買${4 - count}張門票！`,
     });
   }
 
@@ -120,7 +120,7 @@ async function lockSeats(req, res) {
       if (seat.status_id !== 1) {
         await rollback(connection);
         return res.status(400).json({
-          error: '座位已經被搶走了QQ，請重新選位',
+          error: '座位已經被搶走了～請重新選位!',
         });
       }
     }

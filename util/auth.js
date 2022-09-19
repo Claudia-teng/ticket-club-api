@@ -42,7 +42,7 @@ async function isAuth(req, res, next) {
 
   if (!token || token === 'null') {
     return res.status(401).json({
-      error: 'User not login.',
+      error: '請先登入',
     });
   }
 
@@ -50,7 +50,7 @@ async function isAuth(req, res, next) {
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
       if (err) {
         return res.status(403).json({
-          error: 'Invalid token.',
+          error: '登入錯誤',
         });
       } else {
         resolve(payload);
@@ -63,7 +63,7 @@ async function isAuth(req, res, next) {
     const [rows] = await pool.execute(sql, [token.id]);
     if (!rows.length) {
       return res.status(403).json({
-        error: 'Invalid token.',
+        error: '登入錯誤',
       });
     }
     req.user = rows[0];
