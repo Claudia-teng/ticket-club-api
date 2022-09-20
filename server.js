@@ -103,9 +103,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('unlock seat', async (data) => {
-    // console.log('unlock seat', data);
-    await unlockSeats(data);
-    socket.to(chatroom).emit('unlock seat', data);
+    console.log('unlock seat', data);
+    const result = await unlockSeats(socket.userId, data);
+    if (result.ok) {
+      socket.to(chatroom).emit('unlock seat', data);
+      io.to(socket.id).emit('finish unlock');
+    } else {
+      socket.to(chatroom).emit('unlock seat', result.error);
+    }
   });
 
   socket.on('disconnect', async (data) => {

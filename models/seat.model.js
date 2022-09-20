@@ -74,9 +74,16 @@ async function getSeatInfo(seatId) {
   return rows[0];
 }
 
+async function checkSeatOwner(sessionId, seatIds) {
+  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let sql = `SELECT user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  return rows;
+}
+
 async function changeSeatsToEmpty(sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '1' WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  let sql = `UPDATE seat_status SET status_id = '1', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   return rows;
 }
@@ -93,5 +100,6 @@ module.exports = {
   getSessionInfo,
   getSeatInfo,
   getSeats,
+  checkSeatOwner,
   changeSeatsToEmpty,
 };

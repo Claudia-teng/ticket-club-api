@@ -10,6 +10,7 @@ const {
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
+  checkSeatOwner,
   changeSeatsToEmpty,
 } = require('../models/seat.model');
 const { checkSessionExist, checkAreaExist } = require('../util/utils');
@@ -162,7 +163,7 @@ async function lockSeats(req, res) {
   }
 }
 
-async function unlockSeats(data) {
+async function unlockSeats(userId, data) {
   try {
     const seatIds = [];
     if (!data.tickets) {
@@ -184,14 +185,48 @@ async function unlockSeats(data) {
       return;
     }
 
+    const owners = await checkSeatOwner(data.sessionId, seatIds);
+    for (const owner of owners) {
+      if (owner.user_id !== userId) {
+        return {
+          error: `Seat ID(${owner.seat_id}) is not locked by User ID ${userId}`,
+        };
+      }
+
+      if (owner.status_id !== 2) {
+        return {
+          error: `Seat ID(${owner.seat_id}) does not have a lock status`,
+        };
+      }
+    }
+
     await changeSeatsToEmpty(data.sessionId, seatIds);
+    return {
+      ok: true,
+    };
   } catch (err) {
     console.log('err', err);
   }
+}
+
+async function refreshToUnlockSeats(req, res) {
+  console.log('req.body', req.body);
+  const result = await unlockSeats(req.user.id, req.body);
+  if (result.ok) {
+    return res.status(200).json({
+      ok: true,
+    });
+  }
+
+  console.log('err', result.error);
+  return res.status(400).json({
+    error: result.error,
+  });
 }
 
 module.exports = {
   getSeatsByAreaId,
   lockSeats,
   unlockSeats,
+  refreshToUnlockSeats,
 };
