@@ -135,40 +135,43 @@ async function getProfile(req, res) {
     const id = req.user.id;
     const rows = await getUserProfile(id);
     const user = rows[0];
-    const details = await getOrderDetailByUserId(id);
-    const events = {};
-    for (const detail of details) {
-      if (!events[detail.session_id]) {
-        events[detail.session_id] = {
-          session_id: detail.session_id,
-          title: detail.title,
-          time: detail.time,
-          venue: detail.venue,
-          total: detail.price,
-          createdAt: detail.created_at,
+    const orders = await getOrderDetailByUserId(id);
+    const orderMap = {};
+    for (const order of orders) {
+      if (!orderMap[order.id]) {
+        orderMap[order.id] = {
+          orderId: order.id,
+          session_id: order.session_id,
+          title: order.title,
+          time: order.time,
+          venue: order.venue,
+          total: order.price,
+          createdAt: order.created_at,
           tickets: [
             {
-              area: detail.area,
-              price: detail.price,
-              row: detail.row,
-              column: detail.column,
+              area: order.area,
+              price: order.price,
+              row: order.row,
+              column: order.column,
             },
           ],
         };
       } else {
-        events[detail.session_id].total += detail.price;
-        events[detail.session_id].tickets.push({
-          area: detail.area,
-          price: detail.price,
-          row: detail.row,
-          column: detail.column,
+        orderMap[order.id].total += order.price;
+        orderMap[order.id].tickets.push({
+          area: order.area,
+          price: order.price,
+          row: order.row,
+          column: order.column,
         });
       }
     }
+    let tickets = Object.values(orderMap)
+    tickets = tickets.sort((a, b) => b.orderId - a.orderId);
     const data = {
       name: user.name,
       email: user.email,
-      tickets: Object.values(events),
+      tickets,
     };
     return res.status(200).json(data);
   } catch (err) {
