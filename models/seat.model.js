@@ -88,6 +88,21 @@ async function changeSeatsToEmpty(sessionId, seatIds) {
   return rows;
 }
 
+async function getLockedSeats(userId, sessionId) {
+  let sql = `SELECT ss.id, s.area_id, s.row, s.column 
+    FROM seat_status ss
+    JOIN seat s ON ss.seat_id = s.id
+    WHERE session_id = ? && user_id = ? && status_id = '2'`;
+  const [rows] = await pool.execute(sql, [sessionId, userId]);
+  return rows;
+}
+
+async function changeSeatsToEmptyByUserId(seatStatusIds) {
+  let placeholder = seatStatusIds.map((seatStatus) => (seatStatus = '?')).join(', ');
+  let sql = `UPDATE seat_status SET status_id = '1', user_id = null WHERE id IN (${placeholder})`;
+  await pool.execute(sql, seatStatusIds);
+}
+
 module.exports = {
   getPoolConnection,
   beginTransaction,
@@ -102,4 +117,6 @@ module.exports = {
   getSeats,
   checkSeatOwner,
   changeSeatsToEmpty,
+  getLockedSeats,
+  changeSeatsToEmptyByUserId,
 };

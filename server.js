@@ -6,7 +6,7 @@ const { pubClient, subClient } = require('./service/cache');
 const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
-const { unlockSeats } = require('./controllers/seat.controller');
+const { unlockSeats, unlockSeatsByUserId } = require('./controllers/seat.controller');
 const { validateSessionTime, checkOnSaleTime } = require('./util/utils');
 const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
@@ -107,7 +107,6 @@ io.on('connection', (socket) => {
     const result = await unlockSeats(socket.userId, data);
     if (result.ok) {
       socket.to(chatroom).emit('unlock seat', data);
-      io.to(socket.id).emit('finish unlock');
     } else {
       socket.to(chatroom).emit('unlock seat', result.error);
     }
@@ -118,6 +117,11 @@ io.on('connection', (socket) => {
     const userId = socket.userId;
     if (!userIdSocket[userId]) return;
     const sessionId = userIdSocket[userId].sessionId;
+
+    // unlock disconnect user locked seats
+    const unlockSeats = await unlockSeatsByUserId(userId, sessionId);
+    socket.to(chatroom).emit('unlock seat', unlockSeats);
+
     const result = await disconnectFromPage(sessionId, userId, limit);
     const isInQueue = result.inQueue;
     const notifyUsers = result.notifyUsers;

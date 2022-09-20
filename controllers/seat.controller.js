@@ -12,6 +12,8 @@ const {
   getSeatInfo,
   checkSeatOwner,
   changeSeatsToEmpty,
+  getLockedSeats,
+  changeSeatsToEmptyByUserId,
 } = require('../models/seat.model');
 const { checkSessionExist, checkAreaExist } = require('../util/utils');
 
@@ -167,8 +169,9 @@ async function unlockSeats(userId, data) {
   try {
     const seatIds = [];
     if (!data.tickets) {
-      console.log('No tickets received.');
-      return;
+      return {
+        error: 'No tickets received.',
+      };
     }
 
     for (let seat of data.tickets) {
@@ -176,13 +179,15 @@ async function unlockSeats(userId, data) {
     }
 
     if (!data.sessionId) {
-      console.log('Please provide session ID.');
-      return;
+      return {
+        error: 'Please provide session ID.',
+      };
     }
 
     if (!seatIds.length) {
-      console.log('Please provide at least one seat to unlock.');
-      return;
+      return {
+        error: 'Please provide at least one seat to unlock.',
+      };
     }
 
     const owners = await checkSeatOwner(data.sessionId, seatIds);
@@ -206,27 +211,37 @@ async function unlockSeats(userId, data) {
     };
   } catch (err) {
     console.log('err', err);
+    return {
+      error: 'MySQL error.',
+    };
   }
 }
 
-async function refreshToUnlockSeats(req, res) {
-  console.log('req.body', req.body);
-  const result = await unlockSeats(req.user.id, req.body);
-  if (result.ok) {
-    return res.status(200).json({
-      ok: true,
+async function unlockSeatsByUserId(userId, sessionId) {
+  try {
+    const lockedSeats = await getLockedSeats(userId, sessionId);
+    // console.log('lockedSeats', lockedSeats);
+    if (!lockedSeats.length) return;
+    let seatStatusIds = lockedSeats.map((lockedSeat) => lockedSeat.id);
+    await changeSeatsToEmptyByUserId(seatStatusIds);
+    const data = lockedSeats.map((lockedSeat) => {
+      return {
+        row: lockedSeat.row,
+        column: lockedSeat.column,
+      };
     });
+    // console.log('data', data);
+    return {
+      tickets: data,
+    };
+  } catch (err) {
+    console.log('err', err);
   }
-
-  console.log('err', result.error);
-  return res.status(400).json({
-    error: result.error,
-  });
 }
 
 module.exports = {
   getSeatsByAreaId,
   lockSeats,
   unlockSeats,
-  refreshToUnlockSeats,
+  unlockSeatsByUserId,
 };
