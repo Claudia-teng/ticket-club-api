@@ -6,7 +6,7 @@ const { pubClient, subClient } = require('./service/cache');
 const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
-const { unlockSeats, unlockSeatsByUserId, selectSeat, unSelectSeat } = require('./controllers/seat.controller');
+const { unlockSeats, unlockSeatsByUserId, selectSeat, unSelectSeat, unSelectSeatsByUserId } = require('./controllers/seat.controller');
 const { validateSessionTime, checkOnSaleTime } = require('./util/utils');
 const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
@@ -100,16 +100,6 @@ io.on('connection', (socket) => {
     socket.to(chatroom).emit('lock seat', data);
   });
 
-  socket.on('book seat', (data) => {
-    console.log('book seat', data);
-    socket.to(chatroom).emit('book seat', data);
-  });
-
-  socket.on('unselect seat', (data) => {
-    // console.log('unselect seat', data);
-    socket.to(chatroom).emit('unselect seat', data);
-  });
-
   socket.on('unlock seat', async (data) => {
     console.log('unlock seat', data);
     const result = await unlockSeats(socket.userId, data);
@@ -120,15 +110,24 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('book seat', (data) => {
+    console.log('book seat', data);
+    socket.to(chatroom).emit('book seat', data);
+  });
+
   socket.on('disconnect', async (data) => {
     console.log('disconnect');
     const userId = socket.userId;
     if (!userIdSocket[userId]) return;
     const sessionId = userIdSocket[userId].sessionId;
 
+    // unselect disconnect user locked seats
+    const unselectSeats = await unSelectSeatsByUserId(userId, sessionId);
+    if (unselectSeats) socket.to(chatroom).emit('unselect seat', unselectSeats);
+
     // unlock disconnect user locked seats
     const unlockSeats = await unlockSeatsByUserId(userId, sessionId);
-    socket.to(chatroom).emit('unlock seat', unlockSeats);
+    if (unlockSeats) socket.to(chatroom).emit('unlock seat', unlockSeats);
 
     const result = await disconnectFromPage(sessionId, userId, limit);
     const isInQueue = result.inQueue;

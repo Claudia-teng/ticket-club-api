@@ -31,7 +31,13 @@ async function findSeatId(row, column, areaId) {
 }
 
 async function getUserTicketCount(userId, sessionId) {
-  let sql = 'SELECT count(*) AS count from `order_detail` od JOIN `order` o on o.id = od.order_id WHERE user_id = ? && session_id = ?';
+  let sql = `SELECT count(*) AS count from seat_status WHERE user_id = ? && session_id = ?`;
+  const [rows] = await pool.execute(sql, [userId, sessionId]);
+  return rows[0].count;
+}
+
+async function getUserBoughtTicketCount(userId, sessionId) {
+  let sql = `SELECT count(*) AS count from seat_status WHERE user_id = ? && session_id = ? && status_id = '3'`;
   const [rows] = await pool.execute(sql, [userId, sessionId]);
   return rows[0].count;
 }
@@ -90,7 +96,7 @@ async function checkSeatOwner(sessionId, seatIds) {
 
 async function changeSeatsToSelect(sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '4', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  let sql = `UPDATE seat_status SET status_id = '5', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   return rows;
 }
@@ -99,6 +105,15 @@ async function changeSeatsToEmpty(sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `UPDATE seat_status SET status_id = '1', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  return rows;
+}
+
+async function getSelectedSeats(userId, sessionId) {
+  let sql = `SELECT ss.id, s.area_id, s.row, s.column 
+    FROM seat_status ss
+    JOIN seat s ON ss.seat_id = s.id
+    WHERE session_id = ? && user_id = ? && status_id = '5'`;
+  const [rows] = await pool.execute(sql, [sessionId, userId]);
   return rows;
 }
 
@@ -124,6 +139,7 @@ module.exports = {
   rollback,
   findSeatId,
   getUserTicketCount,
+  getUserBoughtTicketCount,
   getSeatsStatus,
   changeSeatsToSelect,
   changeSeatToSelect,
@@ -133,6 +149,7 @@ module.exports = {
   getSeats,
   checkSeatOwner,
   changeSeatsToEmpty,
+  getSelectedSeats,
   getLockedSeats,
   changeSeatsToEmptyByUserId,
 };
