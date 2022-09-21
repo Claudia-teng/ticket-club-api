@@ -4,18 +4,20 @@ const {
   beginTransaction,
   commit,
   rollback,
-  findSeatIds,
+  findSeatId,
   getUserTicketCount,
   getSeatsStatus,
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
   checkSeatOwner,
+  changeSeatToSelect,
   changeSeatsToEmpty,
   getLockedSeats,
   changeSeatsToEmptyByUserId,
 } = require('../models/seat.model');
 const { checkSessionExist, checkAreaExist } = require('../util/utils');
+const ticketLimitPerSession = 4;
 
 async function getSeatsByAreaId(req, res) {
   const sessionId = req.body.sessionId;
@@ -48,6 +50,138 @@ async function getSeatsByAreaId(req, res) {
   });
   const data = Object.values(map);
   return res.status(200).json(data);
+}
+
+async function selectSeat(data, userId) {
+  const sessionId = data.sessionId;
+  if (!sessionId) {
+    return res.status(400).json({
+      error: 'Please provide session ID.',
+    });
+  }
+
+  const sessionExist = await checkSessionExist(sessionId);
+  if (!sessionExist) {
+    return {
+      error: 'Please provide a valid session ID.',
+    };
+  }
+
+  const areaId = data.areaId;
+  if (!areaId) {
+    return {
+      error: 'Please provide an area ID.',
+    };
+  }
+
+  const areaExist = await checkAreaExist(areaId);
+  if (!areaExist) {
+    return {
+      error: 'Please provide a valid area ID.',
+    };
+  }
+
+  // console.log(sessionId, areaId, seats);
+  const seatId = await findSeatId(data.row, data.column, areaId);
+  if (!seatId) {
+    return {
+      error: `Can not find row ${data.row}, column ${data.column} in area ${areaId}`,
+    };
+  }
+
+  let count = await getUserTicketCount(userId, sessionId);
+  // console.log('count', count);
+
+  if (count === ticketLimitPerSession) {
+    return {
+      error: `此帳號已購買${ticketLimitPerSession}張門票！`,
+    };
+  }
+
+  const connection = await getPoolConnection();
+  try {
+    await beginTransaction(connection);
+    console.log('seatId', seatId);
+    const seatStatus = await getSeatsStatus(sessionId, [seatId]);
+    // console.log('seatStatus', seatStatus);
+    if (seatStatus[0].status_id !== 1) {
+      await rollback(connection);
+      return {
+        error: '座位已經被搶走了～請重新選位!',
+      };
+    }
+
+    await changeSeatToSelect(userId, sessionId, seatId);
+    await commit(connection);
+    return {
+      ok: true,
+    };
+  } catch (err) {
+    console.log('err', err);
+    await rollback(connection);
+    return {
+      error: '系統錯誤，請稍後再試',
+    };
+  } finally {
+    connection.release();
+  }
+}
+
+async function unSelectSeat(data, userId) {
+  const sessionId = data.sessionId;
+  if (!sessionId) {
+    return {
+      error: 'Please provide session ID.',
+    };
+  }
+
+  const sessionExist = await checkSessionExist(sessionId);
+  if (!sessionExist) {
+    return {
+      error: 'Please provide a valid session ID.',
+    };
+  }
+
+  const areaId = data.areaId;
+  if (!areaId) {
+    return {
+      error: 'Please provide an area ID.',
+    };
+  }
+
+  const areaExist = await checkAreaExist(areaId);
+  if (!areaExist) {
+    return {
+      error: 'Please provide a valid area ID.',
+    };
+  }
+
+  const seatId = await findSeatId(data.row, data.column, areaId);
+  if (!seatId) {
+    return {
+      error: `Can not find row ${data.row}, column ${data.column} in area ${areaId}`,
+    };
+  }
+
+  try {
+    const seatStatus = await getSeatsStatus(sessionId, [seatId]);
+    // console.log('seatStatus', seatStatus);
+    if (seatStatus[0].user_id !== userId) {
+      return {
+        error: `Seat ID(${seatId}) is not selected by ${userId}`,
+      };
+    }
+
+    await changeSeatsToEmpty(sessionId, [seatId], userId);
+    return {
+      ok: true,
+    };
+  } catch (err) {
+    console.log('err', err);
+    return {
+      error: '系統錯誤，請稍後再試',
+    };
+  }
 }
 
 async function lockSeats(req, res) {
@@ -89,7 +223,7 @@ async function lockSeats(req, res) {
   // console.log(sessionId, areaId, seats);
   let seatIds = [];
   for (const seat of seats) {
-    const seatId = await findSeatIds(seat.row, seat.column, areaId);
+    const seatId = await findSeatId(seat.row, seat.column, areaId);
     if (!seatId) {
       return res.status(400).json({
         error: `Can not find row ${seat.row}, column ${seat.column} in area ${areaId}`,
@@ -98,7 +232,6 @@ async function lockSeats(req, res) {
     seatIds.push(seatId);
   }
 
-  let ticketLimitPerSession = 4;
   let count = await getUserTicketCount(req.user.id, sessionId);
   console.log('count', count);
 
@@ -120,7 +253,13 @@ async function lockSeats(req, res) {
     const seatStatus = await getSeatsStatus(sessionId, seatIds);
     // console.log('seatStatus', seatStatus);
     for (let seat of seatStatus) {
-      if (seat.status_id !== 1) {
+      if (seat.user_id !== req.user.id) {
+        return res.status(400).json({
+          error: `Seat ID(${seat.seat_id}) is not selected by User ID ${req.user.id}`,
+        });
+      }
+
+      if (seat.status_id !== 4) {
         await rollback(connection);
         return res.status(400).json({
           error: '座位已經被搶走了～請重新選位!',
@@ -205,7 +344,7 @@ async function unlockSeats(userId, data) {
       }
     }
 
-    await changeSeatsToEmpty(data.sessionId, seatIds);
+    await changeSeatsToSelect(data.sessionId, seatIds);
     return {
       ok: true,
     };
@@ -242,6 +381,8 @@ async function unlockSeatsByUserId(userId, sessionId) {
 module.exports = {
   getSeatsByAreaId,
   lockSeats,
+  unSelectSeat,
   unlockSeats,
   unlockSeatsByUserId,
+  selectSeat,
 };

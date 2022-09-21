@@ -6,7 +6,7 @@ const { pubClient, subClient } = require('./service/cache');
 const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
-const { unlockSeats, unlockSeatsByUserId } = require('./controllers/seat.controller');
+const { unlockSeats, unlockSeatsByUserId, selectSeat, unSelectSeat } = require('./controllers/seat.controller');
 const { validateSessionTime, checkOnSaleTime } = require('./util/utils');
 const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
@@ -76,15 +76,23 @@ io.on('connection', (socket) => {
     socket.join(chatroom);
   });
 
-  socket.on('select seat', (data) => {
-    // console.log(data);
-    if (data.status_id === 4) {
-      data.status_id = 5;
+  socket.on('select seat', async (data) => {
+    console.log('select seat', data);
+    const result = await selectSeat(data, socket.userId);
+    if (result.error) {
+      return io.to(socket.id).emit('self select seat', result);
     }
-    if (data.status_id === 1) {
-      data.status_id = 1;
+    io.to(socket.id).emit('self select seat', data);
+    socket.to(chatroom).emit('other select seat', data);
+  });
+
+  socket.on('unselect seat', async (data) => {
+    console.log('unselect seat', data);
+    const result = await unSelectSeat(data, socket.userId);
+    if (result.error) {
+      return io.to(socket.id).emit('unselect seat', result);
     }
-    socket.to(chatroom).emit('select seat', data);
+    socket.to(chatroom).emit('unselect seat', data);
   });
 
   socket.on('lock seat', (data) => {
