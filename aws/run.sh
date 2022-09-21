@@ -1,4 +1,5 @@
 #!/bin/bash
+docker-compose down
 docker rmi claudiateng/ticket-club-web
 docker pull claudiateng/ticket-club-web:latest
 docker pull claudiateng/ticket-club-nginx:latest
