@@ -19,7 +19,6 @@ const io = new Server(httpServer, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
-const userIdSocket = {};
 const limit = 3;
 // {
 //   userId: {
@@ -62,11 +61,13 @@ io.on('connection', (socket) => {
     if (!result) {
       io.to(socket.id).emit('check limit', 'Duplicate');
     }
-    userIdSocket[socket.userId] = {
+
+    const userInfo = {
       socketId: socket.id,
       sessionId: sessionId,
     };
-    // console.log('userIdSocket', userIdSocket);
+    await pubClient.hset('users', socket.userId, JSON.stringify(userInfo));
+
     io.to(socket.id).emit('check limit', result);
   });
 
@@ -106,7 +107,7 @@ io.on('connection', (socket) => {
     if (result.ok) {
       socket.to(chatroom).emit('unlock seat', data);
     } else {
-      socket.to(chatroom).emit('unlock seat', result.error);
+      socket.to(chatroom).emit('unlock seat', result);
     }
   });
 
@@ -118,8 +119,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', async (data) => {
     console.log('disconnect');
     const userId = socket.userId;
-    if (!userIdSocket[userId]) return;
-    const sessionId = userIdSocket[userId].sessionId;
+    let userInfo = await pubClient.hget('users', userId);
+    if (!userInfo) return;
+    userInfo = JSON.parse(userInfo);
+    console.log('userInfo', userInfo);
+    const sessionId = userInfo.sessionId;
 
     // unselect disconnect user locked seats
     const unselectSeats = await unSelectSeatsByUserId(userId, sessionId);
@@ -140,7 +144,9 @@ io.on('connection', (socket) => {
       // notify togoUser
       const togoUser = notifyUsers.shift();
       const togoUserId = togoUser.userId;
-      const togoUserSocketId = userIdSocket[togoUserId].socketId;
+      let togoUserInfo = await pubClient.hget('users', togoUserId);
+      togoUserInfo = JSON.parse(togoUserInfo);
+      const togoUserSocketId = togoUserInfo.socketId;
       io.to(togoUserSocketId).emit('ready to go');
     } else {
       console.log('inQueue');
@@ -148,7 +154,9 @@ io.on('connection', (socket) => {
 
     // emit to all users in queue
     for (const user of notifyUsers) {
-      const socketId = userIdSocket[user.userId].socketId;
+      let userInfo = await pubClient.hget('users', user.userId);
+      userInfo = JSON.parse(userInfo);
+      const socketId = userInfo.socketId;
       const data = {
         seconds: user.seconds,
       };
