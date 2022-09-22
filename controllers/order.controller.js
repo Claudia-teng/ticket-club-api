@@ -29,7 +29,7 @@ async function placeOrder(req, res) {
   const seatIds = req.body.seatIds;
   if (seatIds.length > 4) {
     return res.status(400).json({
-      error: 'You can only buy 4 tickets one time.',
+      error: 'You can only buy 4 tickets per session.',
     });
   }
 

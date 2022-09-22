@@ -197,6 +197,7 @@ async function unSelectSeatsByUserId(userId, sessionId) {
   try {
     const selectedSeats = await getSelectedSeats(userId, sessionId);
     console.log('selectedSeats', selectedSeats);
+    // no selected seats
     if (!selectedSeats.length) return;
     let seatStatusIds = selectedSeats.map((selectedSeat) => selectedSeat.id);
     await changeSeatsToEmptyByUserId(seatStatusIds);
@@ -250,7 +251,7 @@ async function lockSeats(req, res) {
   const seats = req.body.tickets;
   if (seats.length > 4) {
     return res.status(400).json({
-      error: 'You can only buy 4 tickets one time.',
+      error: 'You can only buy 4 tickets per session.',
     });
   }
 
