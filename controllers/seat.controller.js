@@ -58,9 +58,9 @@ async function getSeatsByAreaId(req, res) {
 async function selectSeat(data, userId) {
   const sessionId = data.sessionId;
   if (!sessionId) {
-    return res.status(400).json({
+    return {
       error: 'Please provide session ID.',
-    });
+    };
   }
 
   const sessionExist = await checkSessionExist(sessionId);
@@ -125,6 +125,81 @@ async function selectSeat(data, userId) {
     return {
       error: '系統錯誤，請稍後再試',
     };
+  } finally {
+    connection.release();
+  }
+}
+
+async function selectSeatByPost(req, res) {
+  const sessionId = req.body.sessionId;
+  if (!sessionId) {
+    return res.status(400).json({
+      error: 'Please provide session ID.',
+    });
+  }
+
+  const sessionExist = await checkSessionExist(sessionId);
+  if (!sessionExist) {
+    return res.status(400).json({
+      error: 'Please provide a valid session ID.',
+    });
+  }
+
+  const areaId = req.body.areaId;
+  if (!areaId) {
+    return res.status(400).json({
+      error: 'Please provide an area ID.',
+    });
+  }
+
+  const areaExist = await checkAreaExist(areaId);
+  if (!areaExist) {
+    return res.status(400).json({
+      error: 'Please provide a valid area ID.',
+    });
+  }
+
+  // console.log(sessionId, areaId, seats);
+  const seatId = await findSeatId(req.body.row, req.body.column, areaId);
+  if (!seatId) {
+    return res.status(400).json({
+      error: `Can not find row ${req.body.row}, column ${req.body.column} in area ${areaId}`,
+    });
+  }
+
+  let count = await getUserTicketCount(req.user.id, sessionId);
+  console.log('count', count);
+
+  if (count === ticketLimitPerSession) {
+    return res.status(400).json({
+      error: `一個帳號每個場次限購${ticketLimitPerSession}張門票（包含歷史訂單）！`,
+    });
+  }
+
+  const connection = await getPoolConnection();
+  try {
+    await beginTransaction(connection);
+    console.log('seatId', seatId);
+    const seatStatus = await getSeatsStatus(sessionId, [seatId]);
+    // console.log('seatStatus', seatStatus);
+    if (seatStatus[0].status_id !== 1) {
+      await rollback(connection);
+      return res.status(400).json({
+        error: '座位已經被搶走了～請重新選位!',
+      });
+    }
+
+    await changeSeatToSelect(req.user.id, sessionId, seatId);
+    await commit(connection);
+    return res.status(200).json({
+      ok: true,
+    });
+  } catch (err) {
+    console.log('err', err);
+    await rollback(connection);
+    return res.status(400).json({
+      error: '系統錯誤，請稍後再試',
+    });
   } finally {
     connection.release();
   }
@@ -411,4 +486,5 @@ module.exports = {
   unlockSeats,
   unlockSeatsByUserId,
   selectSeat,
+  selectSeatByPost,
 };
