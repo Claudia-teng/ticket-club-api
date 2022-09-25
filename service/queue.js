@@ -76,7 +76,7 @@ async function disconnectFromPage(sessionId, userId, limit) {
       currentTimeStamp,
       limit
     );
-    console.log('results', results);
+    // console.log('results', results);
     let inQueue;
     if (results.shift() === 'true') {
       inQueue = true;

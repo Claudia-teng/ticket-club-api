@@ -46,7 +46,7 @@ async function getSeatsStatus(sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
   let sql = `SELECT id, user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
-  console.log('rows', rows);
+  // console.log('rows', rows);
   return rows;
 }
 
