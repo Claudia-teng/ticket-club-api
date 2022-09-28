@@ -7,7 +7,7 @@ const { generateJwtToken } = require('../util/auth');
 
 async function signup(req, res) {
   let { name, email, password } = req.body;
-  if (!name) {
+  if (!name.trim()) {
     return res.status(400).json({
       error: '請輸入使用者名稱',
     });
@@ -166,7 +166,7 @@ async function getProfile(req, res) {
         });
       }
     }
-    let tickets = Object.values(orderMap)
+    let tickets = Object.values(orderMap);
     tickets = tickets.sort((a, b) => b.orderId - a.orderId);
     const data = {
       name: user.name,

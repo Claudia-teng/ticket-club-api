@@ -7,7 +7,6 @@ const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;
 const { unlockSeats, unlockSeatsByUserId, selectSeat, unSelectSeat, unSelectSeatsByUserId } = require('./controllers/seat.controller');
-const { validateSessionTime, checkOnSaleTime } = require('./util/utils');
 const { disconnectFromPage } = require('./service/queue');
 const rateLimiter = require('./service/rate-limiter');
 const { socketIsAuth } = require('./util/auth');
@@ -40,27 +39,11 @@ io.use(async (socket, next) => {
 
 io.on('connection', (socket) => {
   let chatroom;
+  if (!socket.userId) return io.to(socket.id).emit('check limit', 'Not login');
+
   socket.on('check limit', async (sessionId) => {
-    if (!socket.userId) return io.to(socket.id).emit('check limit', 'Not login');
-
-    const session = await validateSessionTime(sessionId);
-    if (!session.length) {
-      return io.to(socket.id).emit('check limit', 'Please provide valid session ID.');
-    }
-
-    if (new Date(session[0].time).getTime() <= new Date().getTime()) {
-      return io.to(socket.id).emit('check limit', 'Event is expired.');
-    }
-
-    const passOnSaleTime = await checkOnSaleTime(sessionId);
-    if (!passOnSaleTime) return io.to(socket.id).emit('check limit', 'Event is not on sale yet.');
-
     const result = await rateLimiter(sessionId, socket.userId, limit);
     // console.log('result', result);
-    // user is already in event or queue
-    if (!result) {
-      io.to(socket.id).emit('check limit', 'Duplicate');
-    }
 
     const userInfo = {
       socketId: socket.id,

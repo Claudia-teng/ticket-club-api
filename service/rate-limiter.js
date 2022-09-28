@@ -14,27 +14,21 @@ async function rateLimiter(sessionId, userId, limit) {
       local time = 0
       local queueRound = 0
       
-      local eventIndex = redis.call("LPOS", eventKey, userId)
-      local eventQueueIndex = redis.call("LPOS", eventQueueKey, userId)
-      if (eventIndex or eventQueueIndex) then 
-        return 'false'
-      else 
-        if (eventLength >= limit) then
-          local index = 0
-          local queueLength = redis.call("LLEN", eventQueueKey)
-          waitPeople = queueLength + 1
-          queueRound = math.floor(queueLength / limit)
-          index = queueLength % limit
-          
-          local targetUserId = redis.call("LINDEX", eventKey, index)
-          redis.call("RPUSH", eventQueueKey, userId)
-          time = redis.call("HGET", eventTime, targetUserId)
-        else
-          redis.call("RPUSH", eventKey, userId)
-          time = redis.call("HSET", eventTime, userId, currentTimeStamp)
-        end
-        return "," .. eventLength .. "," .. waitPeople .. "," .. time .. "," .. queueRound .. ","
+      if (eventLength >= limit) then
+        local index = 0
+        local queueLength = redis.call("LLEN", eventQueueKey)
+        waitPeople = queueLength + 1
+        queueRound = math.floor(queueLength / limit)
+        index = queueLength % limit
+        
+        local targetUserId = redis.call("LINDEX", eventKey, index)
+        redis.call("RPUSH", eventQueueKey, userId)
+        time = redis.call("HGET", eventTime, targetUserId)
+      else
+        redis.call("RPUSH", eventKey, userId)
+        time = redis.call("HSET", eventTime, userId, currentTimeStamp)
       end
+      return "," .. eventLength .. "," .. waitPeople .. "," .. time .. "," .. queueRound .. ","
     `,
   });
 
@@ -50,8 +44,6 @@ async function rateLimiter(sessionId, userId, limit) {
       limit
     );
     console.log('result', result);
-    // user is already in event or queue
-    if (result === 'false') return false;
     const eventLength = +result.split(',')[1];
     // console.log('eventLength', eventLength);
     const waitPeople = +result.split(',')[2];
