@@ -98,6 +98,8 @@ async function selectSeat(data, userId) {
   if (count === ticketLimitPerSession) {
     return {
       error: `一個帳號每個場次限購${ticketLimitPerSession}張門票（包含歷史訂單）！`,
+      rowIndex: data.row - 1,
+      columnIndex: data.column - 1,
     };
   }
 
@@ -111,6 +113,8 @@ async function selectSeat(data, userId) {
       await rollback(connection);
       return {
         error: '座位已經被搶走了～請重新選位!',
+        rowIndex: data.row - 1,
+        columnIndex: data.column - 1,
       };
     }
 

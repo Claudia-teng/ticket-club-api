@@ -1,5 +1,7 @@
 const { pubClient } = require('../service/cache');
 const { validateSessionTime, checkOnSaleTime } = require('../util/utils');
+const { getUserBoughtTicketCount } = require('../models/seat.model');
+const ticketLimitPerSession = 4;
 
 async function checkAccountDuplicate(req, res) {
   const userId = req.user.id;
@@ -46,11 +48,27 @@ async function checkAccountDuplicate(req, res) {
     return res.status(400).json({
       error: '此帳號已在購票頁面 / 隊伍中！',
     });
-  } else {
-    return res.status(200).json({
-      ok: true,
+  }
+
+  let count = await getUserBoughtTicketCount(req.user.id, sessionId);
+  console.log('count', count);
+
+  if (count === ticketLimitPerSession) {
+    return res.status(400).json({
+      error: `此帳號已購買${ticketLimitPerSession}張，達到單場次上限！`,
     });
   }
+
+  if (count) {
+    return res.status(400).json({
+      warning: true,
+      error: `一個帳號每個場次限購${ticketLimitPerSession}張門票（包含歷史訂單）。此帳號已購買${count}張，確定要用此帳號繼續購買嗎？`,
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+  });
 }
 
 module.exports = {
