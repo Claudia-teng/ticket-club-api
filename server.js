@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 
 io.adapter(createAdapter(pubClient, subClient));
 
-const limit = 10000;
+const limit = 100000;
 // {
 //   userId: {
 //     socketId: 1,
