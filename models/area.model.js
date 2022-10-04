@@ -1,4 +1,5 @@
 const pool = require('../service/db');
+const seatStatusId = require('../configs');
 
 async function getSeatPicture(sessionId) {
   let sql = `SELECT * FROM session WHERE id = ?`;
@@ -20,9 +21,9 @@ async function getSeatsByAreaIds(areaIds, sessionId) {
   let sql = `
     SELECT count(ss.id) AS seats, s.area_id FROM seat_status ss
     JOIN seat s ON ss.seat_id = s.id
-    WHERE s.area_id IN (${areaIds}) && ss.session_id = ? && ss.status_id = 1
+    WHERE s.area_id IN (${areaIds}) && ss.session_id = ? && ss.status_id = ?
     GROUP BY s.area_id`;
-  const [rows] = await pool.execute(sql, [sessionId]);
+  const [rows] = await pool.execute(sql, [sessionId, seatStatusId.EMPTY]);
   return rows;
 }
 

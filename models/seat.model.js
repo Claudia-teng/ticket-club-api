@@ -1,4 +1,5 @@
 const pool = require('../service/db');
+const seatStatusId = require('../configs');
 
 async function getSeats(sessionId, areaId) {
   let sql = `SELECT s.column, s.row, ss.status_id FROM seat_status ss
@@ -37,13 +38,13 @@ async function getUserTicketCount(userId, sessionId) {
 }
 
 async function getUserBoughtTicketCount(userId, sessionId) {
-  let sql = `SELECT count(*) AS count from seat_status WHERE user_id = ? && session_id = ? && status_id = '3'`;
-  const [rows] = await pool.execute(sql, [userId, sessionId]);
+  let sql = `SELECT count(*) AS count from seat_status WHERE user_id = ? && session_id = ? && status_id = ?`;
+  const [rows] = await pool.execute(sql, [userId, sessionId, seatStatusId.SOLD]);
   return rows[0].count;
 }
 
 async function getSeatsStatus(sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `SELECT id, user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   // console.log('rows', rows);
@@ -53,16 +54,14 @@ async function getSeatsStatus(sessionId, seatIds) {
 async function changeSeatToSelect(userId, sessionId, seatId) {
   // console.log(userId, sessionId, seatId);
   let sql = `UPDATE seat_status SET status_id = '5', user_id = ? WHERE session_id = ? AND seat_Id = ?`;
-  const [rows] = await pool.execute(sql, [userId, sessionId, seatId]);
+  const [rows] = await pool.execute(sql, [seatStatusId.OTHER_SELECTED, serId, sessionId, seatId]);
   return rows;
 }
 
 async function changeSeatsToLock(sessionId, seatIds, userId) {
-  // console.log('userId', userId);
-  // console.log('sessionId', sessionId);
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '2', user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [userId, sessionId, ...seatIds]);
+  let placeholder = getSQLPlaceHolder(seatIds);
+  let sql = `UPDATE seat_status SET status_id = ?, user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await pool.execute(sql, [seatStatusId.LOCKED, userId, sessionId, ...seatIds]);
   return rows;
 }
 
@@ -88,23 +87,23 @@ async function getSeatInfo(seatId) {
 }
 
 async function checkSeatOwner(sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `SELECT user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   return rows;
 }
 
 async function changeSeatsToSelect(sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '5', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  let placeholder = getSQLPlaceHolder(seatIds);
+  let sql = `UPDATE seat_status SET status_id = ?, user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await pool.execute(sql, [seatStatusId.OTHER_SELECTED, sessionId, ...seatIds]);
   return rows;
 }
 
 async function changeSeatsToEmpty(sessionId, seatIds) {
   let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '1', user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
+  let sql = `UPDATE seat_status SET status_id = ?, user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await pool.execute(sql, [seatStatusId.EMPTY, sessionId, ...seatIds]);
   return rows;
 }
 
@@ -112,8 +111,8 @@ async function getSelectedSeats(userId, sessionId) {
   let sql = `SELECT ss.id, s.area_id, s.row, s.column 
     FROM seat_status ss
     JOIN seat s ON ss.seat_id = s.id
-    WHERE session_id = ? && user_id = ? && status_id = '5'`;
-  const [rows] = await pool.execute(sql, [sessionId, userId]);
+    WHERE session_id = ? && user_id = ? && status_id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId, userId, seatStatusId.OTHER_SELECTED]);
   return rows;
 }
 
@@ -121,15 +120,15 @@ async function getLockedSeats(userId, sessionId) {
   let sql = `SELECT ss.id, s.area_id, s.row, s.column 
     FROM seat_status ss
     JOIN seat s ON ss.seat_id = s.id
-    WHERE session_id = ? && user_id = ? && status_id = '2'`;
-  const [rows] = await pool.execute(sql, [sessionId, userId]);
+    WHERE session_id = ? && user_id = ? && status_id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId, userId, seatStatusId.LOCKED]);
   return rows;
 }
 
 async function changeSeatsToEmptyByUserId(seatStatusIds) {
   let placeholder = seatStatusIds.map((seatStatus) => (seatStatus = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '1', user_id = null WHERE id IN (${placeholder})`;
-  await pool.execute(sql, seatStatusIds);
+  let sql = `UPDATE seat_status SET status_id = ?, user_id = null WHERE id IN (${placeholder})`;
+  await pool.execute(sql, [seatStatusId.EMPTY, ...seatStatusIds]);
 }
 
 module.exports = {

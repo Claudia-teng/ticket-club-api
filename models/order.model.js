@@ -1,4 +1,6 @@
 const pool = require('../service/db');
+const seatStatusId = require('../configs');
+const { getSQLPlaceHolder } = require('../util/utils');
 
 async function getPoolConnection() {
   return pool.getConnection();
@@ -24,7 +26,7 @@ async function findSeatIds(row, column, areaId) {
 
 async function getSeatsStatus(sessionId, seatIds) {
   console.log('order');
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `SELECT seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
   return rows;
@@ -41,7 +43,7 @@ async function getSessionInfo(sessionId) {
 }
 
 async function getPriceBySeatIds(connection, sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
+  let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `
     SELECT s.id, price FROM price p
     JOIN area a ON p.area_id = a.id
@@ -53,9 +55,9 @@ async function getPriceBySeatIds(connection, sessionId, seatIds) {
 }
 
 async function changeSeatsToSold(connection, sessionId, seatIds) {
-  let placeholder = seatIds.map((id) => (id = '?')).join(', ');
-  let sql = `UPDATE seat_status SET status_id = '3' WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await connection.execute(sql, [sessionId, ...seatIds]);
+  let placeholder = getSQLPlaceHolder(seatIds);
+  let sql = `UPDATE seat_status SET status_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
+  const [rows] = await connection.execute(sql, [seatStatusId.SOLD, sessionId, ...seatIds]);
   return rows;
 }
 

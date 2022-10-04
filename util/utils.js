@@ -1,5 +1,9 @@
 const pool = require('../service/db');
 
+function getSQLPlaceHolder(items) {
+  return items.map((item) => (item = '?')).join(', ');
+}
+
 async function checkSessionExist(sessionId) {
   let sql = 'SELECT * FROM session WHERE id = ?';
   const [rows] = await pool.execute(sql, [sessionId]);
@@ -33,6 +37,7 @@ async function checkOnSaleTime(sessionId) {
 }
 
 module.exports = {
+  getSQLPlaceHolder,
   checkSessionExist,
   validateSessionTime,
   checkAreaExist,
