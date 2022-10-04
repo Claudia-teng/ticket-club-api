@@ -6,6 +6,6 @@ const seatStatusId = {
   OTHER_SELECTED: 5,
 };
 
-module.export = {
+module.exports = {
   seatStatusId,
 };

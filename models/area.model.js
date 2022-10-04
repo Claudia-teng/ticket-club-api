@@ -1,5 +1,5 @@
 const pool = require('../service/db');
-const seatStatusId = require('../configs');
+const { seatStatusId } = require('../configs');
 
 async function getSeatPicture(sessionId) {
   let sql = `SELECT * FROM session WHERE id = ?`;

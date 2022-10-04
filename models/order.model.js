@@ -1,5 +1,5 @@
 const pool = require('../service/db');
-const seatStatusId = require('../configs');
+const { seatStatusId } = require('../configs');
 const { getSQLPlaceHolder } = require('../util/utils');
 
 async function getPoolConnection() {
