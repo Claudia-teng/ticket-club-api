@@ -77,23 +77,21 @@ async function disconnectFromPage(sessionId, userId, limit) {
       limit
     );
     // console.log('results', results);
-    let inQueue;
-    if (results.shift() === 'true') {
-      inQueue = true;
-    } else {
-      inQueue = false;
-    }
+    let inQueue = results.shift() === 'true' ? true : false;
+
     const notifyUsers = [];
     if (!inQueue) {
-      if (!results.length)
+      if (!results.length) {
         return {
-          inQueue,
-          notifyUsers,
+          inQueue: false,
+          notifyUsers: [],
         };
-      const togoUser = results.shift();
-      notifyUsers.push({
-        userId: togoUser,
-      });
+      } else {
+        const togoUser = results.shift();
+        notifyUsers.push({
+          userId: togoUser,
+        });
+      }
     }
 
     results.forEach((result) => {

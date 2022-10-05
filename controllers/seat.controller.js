@@ -4,7 +4,7 @@ const {
   beginTransaction,
   commit,
   rollback,
-  findSeatId,
+  getSeatId,
   getUserTicketCount,
   getUserBoughtTicketCount,
   getSeatsStatus,
@@ -13,7 +13,6 @@ const {
   getSeatInfo,
   checkSeatOwner,
   changeSeatToSelect,
-  changeSeatsToSelect,
   changeSeatsToEmpty,
   getSelectedSeats,
   getLockedSeats,
@@ -85,7 +84,7 @@ async function selectSeat(data, userId) {
   }
 
   // console.log(sessionId, areaId, seats);
-  const seatId = await findSeatId(data.row, data.column, areaId);
+  const seatId = await getSeatId(data.row, data.column, areaId);
   if (!seatId) {
     return {
       error: `Can not find row ${data.row}, column ${data.column} in area ${areaId}`,

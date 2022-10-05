@@ -1,5 +1,5 @@
 const { pubClient } = require('../service/cache');
-const { validateSessionTime, checkOnSaleTime } = require('../util/utils');
+const { getSessionTimeById, checkOnSaleTime } = require('../util/utils');
 const { getUserBoughtTicketCount } = require('../models/seat.model');
 const ticketLimitPerSession = 4;
 
@@ -14,7 +14,7 @@ async function checkAccountDuplicate(req, res) {
 
   let session;
   try {
-    session = await validateSessionTime(sessionId);
+    session = await getSessionTimeById(sessionId);
   } catch (err) {
     console.log('err');
     return res.status(500).json({

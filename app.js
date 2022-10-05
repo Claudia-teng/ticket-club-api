@@ -15,4 +15,10 @@ app.use(function (req, res) {
   });
 });
 
+app.use(function (err, req, res, next) {
+  return res.status(500).json({
+    error: 'Internal Server Error.',
+  });
+});
+
 module.exports = app;

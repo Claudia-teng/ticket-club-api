@@ -1,7 +1,7 @@
 const pool = require('../service/db');
 
 function getSQLPlaceHolder(items) {
-  return items.map((item) => (item = '?')).join(', ');
+  return items.map(() => '?').join(', ');
 }
 
 async function checkSessionExist(sessionId) {
@@ -10,7 +10,7 @@ async function checkSessionExist(sessionId) {
   return rows.length ? true : false;
 }
 
-async function validateSessionTime(sessionId) {
+async function getSessionTimeByID(sessionId) {
   let sql = 'SELECT time FROM session WHERE id = ?';
   const [rows] = await pool.execute(sql, [sessionId]);
   return rows;
@@ -39,7 +39,7 @@ async function checkOnSaleTime(sessionId) {
 module.exports = {
   getSQLPlaceHolder,
   checkSessionExist,
-  validateSessionTime,
+  getSessionTimeByID,
   checkAreaExist,
   checkSeatIdExist,
   checkOnSaleTime,
