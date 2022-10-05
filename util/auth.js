@@ -4,12 +4,14 @@ const pool = require('../service/db');
 
 async function socketIsAuth(token) {
   token = token.replace('Bearer ', '');
+  if (token === 'null') return new Error('請先登入！');
+
   let user;
   try {
     user = await new Promise((resolve, reject) => {
       jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
         if (err) {
-          reject('Verify error');
+          reject('請重新登入！');
         } else {
           resolve(payload);
         }
@@ -17,20 +19,20 @@ async function socketIsAuth(token) {
     });
   } catch (err) {
     console.log('err', err);
-    return null;
+    return new Error('請重新登入！');
   }
 
   try {
     // console.log('sql', user);
     let sql = `SELECT u.id FROM user u WHERE id = ?`;
     const [rows] = await pool.execute(sql, [user.id]);
-    if (!rows.length) return null;
+    if (!rows.length) return new Error('請重新登入！');
     user = rows[0];
     console.log('pass');
     return user;
   } catch (err) {
     console.log('err', err);
-    return null;
+    return new Error('請重新登入！');
   }
 }
 

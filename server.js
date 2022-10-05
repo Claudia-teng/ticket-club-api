@@ -28,18 +28,18 @@ const limit = 3;
 
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
-  // console.log('token', token);
-  if (!token) return next();
-  const user = await socketIsAuth(token);
-  // console.log('user', user);
-  if (!user) return next();
-  socket.userId = user.id;
-  next();
+  try {
+    const user = await socketIsAuth(token);
+    socket.userId = user.id;
+    next();
+  } catch (err) {
+    console.log('err', err);
+    next(err);
+  }
 });
 
 io.on('connection', (socket) => {
   let chatroom;
-  if (!socket.userId) return io.to(socket.id).emit('check limit', 'Not login');
 
   socket.on('check limit', async (sessionId) => {
     const result = await rateLimiter(sessionId, socket.userId, limit);
@@ -49,13 +49,12 @@ io.on('connection', (socket) => {
       socketId: socket.id,
       sessionId: sessionId,
     };
-    await pubClient.hset('users', socket.userId, JSON.stringify(userInfo));
 
+    await pubClient.hset('users', socket.userId, JSON.stringify(userInfo));
     io.to(socket.id).emit('check limit', result);
   });
 
   socket.on('join room', (data) => {
-    // console.log(`in ${data.sessionId}-${data.areaId} room`);
     chatroom = `${data.sessionId}-${data.areaId}`;
     socket.join(chatroom);
   });
