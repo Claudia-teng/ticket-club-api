@@ -26,7 +26,7 @@ async function rollback(connection) {
   return connection.rollback();
 }
 
-async function findSeatId(row, column, areaId) {
+async function getSeatId(row, column, areaId) {
   let sql = 'SELECT id FROM seat WHERE `row` = ? && `column` = ? && `area_id` = ?';
   const [rows] = await pool.execute(sql, [row, column, areaId]);
   return rows[0].id;
@@ -137,7 +137,7 @@ module.exports = {
   beginTransaction,
   commit,
   rollback,
-  findSeatId,
+  getSeatId,
   getUserTicketCount,
   getUserBoughtTicketCount,
   getSeatsStatus,
