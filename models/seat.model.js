@@ -2,7 +2,7 @@ const pool = require('../service/db');
 const { seatStatusId } = require('../configs');
 const { getSQLPlaceHolder } = require('../util/utils');
 
-async function getSeats(sessionId, areaId) {
+async function getSeatsByAreaId(sessionId, areaId) {
   let sql = `SELECT s.column, s.row, ss.status_id FROM seat_status ss
     JOIN seat s ON ss.seat_id = s.id
     WHERE session_id = ? && area_id = ?`;
@@ -146,7 +146,7 @@ module.exports = {
   changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
-  getSeats,
+  getSeatsByAreaId,
   checkSeatOwner,
   changeSeatsToEmpty,
   getSelectedSeats,

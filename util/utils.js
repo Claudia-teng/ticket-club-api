@@ -10,12 +10,6 @@ async function checkSessionExist(sessionId) {
   return rows.length ? true : false;
 }
 
-async function getSessionTimeByID(sessionId) {
-  let sql = 'SELECT time FROM session WHERE id = ?';
-  const [rows] = await pool.execute(sql, [sessionId]);
-  return rows;
-}
-
 async function checkAreaExist(areaId) {
   let sql = 'SELECT * FROM area WHERE id = ?';
   const [rows] = await pool.execute(sql, [areaId]);
@@ -25,6 +19,12 @@ async function checkAreaExist(areaId) {
 async function checkSeatIdExist(seatId, sessionId) {
   let sql = 'SELECT user_id from seat_status WHERE seat_id = ? AND session_id = ?';
   const [rows] = await pool.execute(sql, [seatId, sessionId]);
+  return rows;
+}
+
+async function getSessionTimeById(sessionId) {
+  let sql = 'SELECT time FROM session WHERE id = ?';
+  const [rows] = await pool.execute(sql, [sessionId]);
   return rows;
 }
 
@@ -38,9 +38,9 @@ async function checkOnSaleTime(sessionId) {
 
 module.exports = {
   getSQLPlaceHolder,
-  checkSessionExist,
-  getSessionTimeByID,
   checkAreaExist,
+  checkSessionExist,
+  getSessionTimeById,
   checkSeatIdExist,
   checkOnSaleTime,
 };

@@ -2,12 +2,12 @@ const pool = require('../service/db');
 const { seatStatusId } = require('../configs');
 
 async function getSeatPicture(sessionId) {
-  let sql = `SELECT * FROM session WHERE id = ?`;
+  let sql = `SELECT seat_picture FROM session WHERE id = ?`;
   const [rows] = await pool.execute(sql, [sessionId]);
   return rows[0].seat_picture;
 }
 
-async function getAreaIds(sessionId) {
+async function getAreasBySessionId(sessionId) {
   let sql = `SELECT a.id, a.name, p.price FROM session s
     JOIN venue v on v.id = s.venue_id 
     JOIN area a on v.id = a.venue_id
@@ -17,7 +17,8 @@ async function getAreaIds(sessionId) {
   return rows;
 }
 
-async function getSeatsByAreaIds(areaIds, sessionId) {
+async function getEmptySeatsByArea(areas, sessionId) {
+  let areaIds = areas.map((area) => area.id).join(', ');
   let sql = `
     SELECT count(ss.id) AS seats, s.area_id FROM seat_status ss
     JOIN seat s ON ss.seat_id = s.id
@@ -29,6 +30,6 @@ async function getSeatsByAreaIds(areaIds, sessionId) {
 
 module.exports = {
   getSeatPicture,
-  getAreaIds,
-  getSeatsByAreaIds,
+  getAreasBySessionId,
+  getEmptySeatsByArea,
 };

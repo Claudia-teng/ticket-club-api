@@ -132,40 +132,13 @@ async function signin(req, res) {
 
 async function getProfile(req, res) {
   try {
-    const id = req.user.id;
-    const rows = await getUserProfile(id);
+    const userId = req.user.id;
+    const rows = await getUserProfile(userId);
     const user = rows[0];
-    const orders = await getOrderDetailByUserId(id);
-    const orderMap = {};
-    for (const order of orders) {
-      if (!orderMap[order.id]) {
-        orderMap[order.id] = {
-          orderId: order.id,
-          session_id: order.session_id,
-          title: order.title,
-          time: order.time,
-          venue: order.venue,
-          total: order.price,
-          createdAt: order.created_at,
-          tickets: [
-            {
-              area: order.area,
-              price: order.price,
-              row: order.row,
-              column: order.column,
-            },
-          ],
-        };
-      } else {
-        orderMap[order.id].total += order.price;
-        orderMap[order.id].tickets.push({
-          area: order.area,
-          price: order.price,
-          row: order.row,
-          column: order.column,
-        });
-      }
-    }
+
+    const orders = await getOrderDetailByUserId(userId);
+    const orderMap = organizeDetailByOrderId(orders);
+
     let tickets = Object.values(orderMap);
     tickets = tickets.sort((a, b) => b.orderId - a.orderId);
     const data = {
@@ -180,6 +153,40 @@ async function getProfile(req, res) {
       error: '系統錯誤，請稍後再試',
     });
   }
+}
+
+function organizeDetailByOrderId(orders) {
+  const orderMap = {};
+  for (const order of orders) {
+    if (!orderMap[order.id]) {
+      orderMap[order.id] = {
+        orderId: order.id,
+        session_id: order.session_id,
+        title: order.title,
+        time: order.time,
+        venue: order.venue,
+        total: order.price,
+        createdAt: order.created_at,
+        tickets: [
+          {
+            area: order.area,
+            price: order.price,
+            row: order.row,
+            column: order.column,
+          },
+        ],
+      };
+    } else {
+      orderMap[order.id].total += order.price;
+      orderMap[order.id].tickets.push({
+        area: order.area,
+        price: order.price,
+        row: order.row,
+        column: order.column,
+      });
+    }
+  }
+  return orderMap;
 }
 
 module.exports = {

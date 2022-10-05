@@ -3,7 +3,7 @@ const { getSessionTimeById, checkOnSaleTime } = require('../util/utils');
 const { getUserBoughtTicketCount } = require('../models/seat.model');
 const ticketLimitPerSession = 4;
 
-async function checkAccountDuplicate(req, res) {
+async function checkValidation(req, res) {
   const userId = req.user.id;
   const sessionId = req.body.sessionId;
   if (!sessionId) {
@@ -72,5 +72,5 @@ async function checkAccountDuplicate(req, res) {
 }
 
 module.exports = {
-  checkAccountDuplicate,
+  checkValidation,
 };
