@@ -2,14 +2,6 @@ const pool = require('../service/db');
 const { seatStatusId } = require('../configs');
 const { getSQLPlaceHolder } = require('../util/utils');
 
-async function getSeatsByAreaId(sessionId, areaId) {
-  let sql = `SELECT s.column, s.row, ss.status_id FROM seat_status ss
-    JOIN seat s ON ss.seat_id = s.id
-    WHERE session_id = ? && area_id = ?`;
-  const [rows] = await pool.execute(sql, [sessionId, areaId]);
-  return rows;
-}
-
 async function getPoolConnection() {
   return pool.getConnection();
 }
@@ -32,6 +24,14 @@ async function getSeatId(row, column, areaId) {
   return rows[0].id;
 }
 
+async function getSeatsByAreaId(sessionId, areaId) {
+  let sql = `SELECT s.column, s.row, ss.status_id FROM seat_status ss
+    JOIN seat s ON ss.seat_id = s.id
+    WHERE session_id = ? && area_id = ?`;
+  const [rows] = await pool.execute(sql, [sessionId, areaId]);
+  return rows;
+}
+
 async function getUserTicketCount(userId, sessionId) {
   let sql = `SELECT count(*) AS count from seat_status WHERE user_id = ? && session_id = ?`;
   const [rows] = await pool.execute(sql, [userId, sessionId]);
@@ -48,21 +48,12 @@ async function getSeatsStatus(sessionId, seatIds) {
   let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `SELECT id, user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder}) FOR UPDATE`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
-  // console.log('rows', rows);
   return rows;
 }
 
-async function changeSeatToSelect(userId, sessionId, seatId) {
-  // console.log(userId, sessionId, seatId);
+async function changeSeatsStatus(status, userId, sessionId, seatId) {
   let sql = `UPDATE seat_status SET status_id = ?, user_id = ? WHERE session_id = ? AND seat_Id = ?`;
-  const [rows] = await pool.execute(sql, [seatStatusId.OTHER_SELECTED, userId, sessionId, seatId]);
-  return rows;
-}
-
-async function changeSeatsToLock(sessionId, seatIds, userId) {
-  let placeholder = getSQLPlaceHolder(seatIds);
-  let sql = `UPDATE seat_status SET status_id = ?, user_id = ? WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [seatStatusId.LOCKED, userId, sessionId, ...seatIds]);
+  const [rows] = await pool.execute(sql, [status, userId, sessionId, ...seatId]);
   return rows;
 }
 
@@ -91,13 +82,6 @@ async function checkSeatOwner(sessionId, seatIds) {
   let placeholder = getSQLPlaceHolder(seatIds);
   let sql = `SELECT user_id, seat_id, status_id FROM seat_status WHERE session_id = ? AND seat_Id IN (${placeholder})`;
   const [rows] = await pool.execute(sql, [sessionId, ...seatIds]);
-  return rows;
-}
-
-async function changeSeatsToSelect(sessionId, seatIds) {
-  let placeholder = getSQLPlaceHolder(seatIds);
-  let sql = `UPDATE seat_status SET status_id = ?, user_id = null WHERE session_id = ? AND seat_Id IN (${placeholder})`;
-  const [rows] = await pool.execute(sql, [seatStatusId.OTHER_SELECTED, sessionId, ...seatIds]);
   return rows;
 }
 
@@ -141,9 +125,7 @@ module.exports = {
   getUserTicketCount,
   getUserBoughtTicketCount,
   getSeatsStatus,
-  changeSeatsToSelect,
-  changeSeatToSelect,
-  changeSeatsToLock,
+  changeSeatsStatus,
   getSessionInfo,
   getSeatInfo,
   getSeatsByAreaId,

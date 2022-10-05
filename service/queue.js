@@ -78,15 +78,17 @@ async function disconnectFromPage(sessionId, userId, limit) {
     );
     // console.log('results', results);
     let inQueue = results.shift() === 'true' ? true : false;
-
     const notifyUsers = [];
+
     if (!inQueue) {
       if (!results.length) {
+        // no users waiting
         return {
-          inQueue: false,
-          notifyUsers: [],
+          inQueue,
+          notifyUsers,
         };
       } else {
+        // get togoUser
         const togoUser = results.shift();
         notifyUsers.push({
           userId: togoUser,
@@ -94,6 +96,7 @@ async function disconnectFromPage(sessionId, userId, limit) {
       }
     }
 
+    // emit to all users in queue
     results.forEach((result) => {
       const queueRound = result.split(',')[2];
       let milliseconds = +result.split(',')[1];

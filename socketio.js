@@ -9,7 +9,6 @@ module.exports = (io) => {
   async function checkLimit(sessionId) {
     const socket = this;
     const result = await rateLimiter(sessionId, socket.userId, limit);
-    // console.log('result', result);
     const userInfo = {
       socketId: socket.id,
       sessionId: sessionId,
@@ -55,17 +54,16 @@ module.exports = (io) => {
     console.log('unlock seat', data);
     const socket = this;
     const result = await unlockSeats(socket.userId, data);
-    if (result.ok) {
-      socket.to(chatroom).emit('unlock seat', data);
-    } else {
-      socket.to(chatroom).emit('unlock seat', result);
+    if (result.error) {
+      return io.to(socket.id).emit('unlock seat', result);
     }
+    socket.to(chatroom).emit('unlock seat', data);
   }
 
-  async function onBookSeat(data) {
-    console.log('book seat', data);
+  async function onSoldSeat(data) {
+    console.log('sold seat', data);
     const socket = this;
-    socket.to(chatroom).emit('book seat', data);
+    socket.to(chatroom).emit('sold seat', data);
   }
 
   async function onDisconnect() {
@@ -124,7 +122,7 @@ module.exports = (io) => {
     onUnselectSeat,
     onLockSeat,
     onUnlockSeat,
-    onBookSeat,
+    onSoldSeat,
     onDisconnect,
   };
 };

@@ -13,7 +13,7 @@ const io = new Server(httpServer, {
   },
 });
 io.adapter(createAdapter(pubClient, subClient));
-const { checkLimit, joinRoom, onSelectSeat, onUnselectSeat, onLockSeat, onUnlockSeat, onBookSeat, onDisconnect } = require('./socketio')(io);
+const { checkLimit, joinRoom, onSelectSeat, onUnselectSeat, onLockSeat, onUnlockSeat, onSoldSeat, onDisconnect } = require('./socketio')(io);
 
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
   socket.on('unselect seat', onUnselectSeat);
   socket.on('lock seat', onLockSeat);
   socket.on('unlock seat', onUnlockSeat);
-  socket.on('book seat', onBookSeat);
+  socket.on('sold seat', onSoldSeat);
   socket.on('disconnect', onDisconnect);
 });
 

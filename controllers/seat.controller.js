@@ -8,17 +8,17 @@ const {
   getUserTicketCount,
   getUserBoughtTicketCount,
   getSeatsStatus,
-  changeSeatsToLock,
   getSessionInfo,
   getSeatInfo,
   checkSeatOwner,
-  changeSeatToSelect,
+  changeSeatsStatus,
   changeSeatsToEmpty,
   getSelectedSeats,
   getLockedSeats,
   changeSeatsToEmptyByUserId,
 } = require('../models/seat.model');
 const { checkSessionExist, checkAreaExist } = require('../util/utils');
+const { seatStatusId } = require('../configs');
 const ticketLimitPerSession = 4;
 
 async function getSeats(req, res) {
@@ -128,7 +128,7 @@ async function lockSeats(req, res) {
       }
     }
 
-    await changeSeatsToLock(sessionId, seatIds, req.user.id);
+    await changeSeatsStatus(seatStatusId.LOCKED, req.user.id, sessionId, seatIds);
 
     const sessionInfo = await getSessionInfo(sessionId);
     const tickets = [];
@@ -224,7 +224,7 @@ async function selectSeat(data, userId) {
       };
     }
 
-    await changeSeatToSelect(userId, sessionId, seatId);
+    await changeSeatsStatus(seatStatusId.OTHER_SELECTED, userId, sessionId, [seatId]);
     await commit(connection);
     return {
       ok: true,
