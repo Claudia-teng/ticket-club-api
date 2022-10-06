@@ -12,8 +12,9 @@ const {
 const { checkSessionExist, checkSeatIdExist } = require('../util/utils');
 
 async function placeOrder(req, res) {
+  const sessionId = req.body.sessionId;
+  const seatIds = req.body.seatIds;
   try {
-    const sessionId = req.body.sessionId;
     if (!sessionId) {
       return res.status(400).json({
         error: 'Please provide session ID.',
@@ -27,7 +28,6 @@ async function placeOrder(req, res) {
       });
     }
 
-    const seatIds = req.body.seatIds;
     if (seatIds.length > 4) {
       return res.status(400).json({
         error: 'You can only buy 4 tickets per session.',
