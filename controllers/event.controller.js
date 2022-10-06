@@ -30,33 +30,33 @@ async function getEventDetail(req, res) {
         error: 'Please provide a valid event ID.',
       });
     }
+
+    const event = events[0];
+    const sessions = [];
+    events.forEach((event) => {
+      sessions.push({
+        session_id: event.id,
+        time: event.time,
+        city: event.city,
+        venue: event.venue,
+      });
+    });
+    const data = {
+      singer: event.singer,
+      title: event.title,
+      detailPicture: `${process.env.SERVER_IMAGE_PATH}/${event.detailPicture}`,
+      description: event.description,
+      videoLink: event.video_link,
+      onSale: event.on_sale,
+      sessions,
+    };
+    return res.status(200).json(data);
   } catch (err) {
     console.log('err', err);
     return res.status(500).json({
       error: '系統錯誤，請稍後再試！',
     });
   }
-
-  const event = events[0];
-  const sessions = [];
-  events.forEach((event) => {
-    sessions.push({
-      session_id: event.id,
-      time: event.time,
-      city: event.city,
-      venue: event.venue,
-    });
-  });
-  const data = {
-    singer: event.singer,
-    title: event.title,
-    detailPicture: `${process.env.SERVER_IMAGE_PATH}/${event.detailPicture}`,
-    description: event.description,
-    videoLink: event.video_link,
-    onSale: event.on_sale,
-    sessions,
-  };
-  return res.status(200).json(data);
 }
 
 module.exports = {
