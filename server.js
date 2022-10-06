@@ -13,7 +13,8 @@ const io = new Server(httpServer, {
   },
 });
 io.adapter(createAdapter(pubClient, subClient));
-const { checkLimit, joinRoom, onSelectSeat, onUnselectSeat, onLockSeat, onUnlockSeat, onSoldSeat, onDisconnect } = require('./socketio')(io);
+const { checkLimit, joinRoom, selectSeat, unselectSeat, lockSeat, unlockSeat, soldSeat, disconnect } =
+  require('./socket/controllers/seat.controller')(io);
 
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
@@ -30,12 +31,12 @@ io.use(async (socket, next) => {
 io.on('connection', (socket) => {
   socket.on('check limit', checkLimit);
   socket.on('join room', joinRoom);
-  socket.on('select seat', onSelectSeat);
-  socket.on('unselect seat', onUnselectSeat);
-  socket.on('lock seat', onLockSeat);
-  socket.on('unlock seat', onUnlockSeat);
-  socket.on('sold seat', onSoldSeat);
-  socket.on('disconnect', onDisconnect);
+  socket.on('select seat', selectSeat);
+  socket.on('unselect seat', unselectSeat);
+  socket.on('lock seat', lockSeat);
+  socket.on('unlock seat', unlockSeat);
+  socket.on('sold seat', soldSeat);
+  socket.on('disconnect', disconnect);
 });
 
 httpServer.listen(PORT, () => {

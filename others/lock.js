@@ -1,13 +1,5 @@
 require('dotenv').config();
-const mysql = require('mysql2/promise');
 const axios = require('axios');
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USERNAME,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-});
 
 async function buyTickets() {
   for (let i = 0; i < 1000; i++) {
