@@ -2,7 +2,7 @@ require('dotenv').config();
 const { createServer } = require('http');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const { Server } = require('socket.io');
-const { pubClient, subClient } = require('./service/cache');
+const { pubClient, subClient } = require('./service/redis');
 const app = require('./app');
 const httpServer = createServer(app);
 const PORT = process.env.SERVER_PORT || 3000;

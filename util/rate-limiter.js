@@ -1,4 +1,4 @@
-const { pubClient } = require('../service/cache');
+const { pubClient } = require('../service/redis');
 
 async function rateLimiter(sessionId, userId, limit) {
   await pubClient.defineCommand('rateLimiter', {

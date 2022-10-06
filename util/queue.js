@@ -1,4 +1,4 @@
-const { pubClient } = require('../service/cache');
+const { pubClient } = require('../service/redis');
 
 async function disconnectFromPage(sessionId, userId, limit) {
   await pubClient.defineCommand('disconnectFromPage', {

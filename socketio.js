@@ -1,7 +1,7 @@
-const rateLimiter = require('./service/rate-limiter');
-const { disconnectFromPage } = require('./service/queue');
+const rateLimiter = require('./util/rate-limiter');
+const { disconnectFromPage } = require('./util/queue');
 const { unlockSeats, unlockSeatsByUserId, selectSeat, unSelectSeat, unSelectSeatsByUserId } = require('./controllers/seat.controller');
-const { pubClient } = require('./service/cache');
+const { pubClient } = require('./service/redis');
 const limit = 3;
 let chatroom;
 

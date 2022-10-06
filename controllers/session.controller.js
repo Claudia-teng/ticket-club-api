@@ -1,4 +1,4 @@
-const { pubClient } = require('../service/cache');
+const { pubClient } = require('../service/redis');
 const { getSessionTimeById, checkOnSaleTime } = require('../util/utils');
 const { getUserBoughtTicketCount } = require('../models/seat.model');
 const ticketLimitPerSession = 4;

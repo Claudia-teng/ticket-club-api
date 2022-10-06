@@ -3,8 +3,10 @@ const jwt = require('jsonwebtoken');
 const pool = require('../service/db');
 
 async function socketIsAuth(token) {
-  token = token.replace('Bearer ', '');
-  if (token === 'null') return new Error('請先登入！');
+  token = token?.replace('Bearer ', '');
+  if (!token || token === 'null') {
+    return new Error('請先登入！');
+  }
 
   let user;
   try {
@@ -44,7 +46,7 @@ async function isAuth(req, res, next) {
 
   if (!token || token === 'null') {
     return res.status(401).json({
-      error: '請先登入',
+      error: '請先登入！',
     });
   }
 
@@ -52,7 +54,7 @@ async function isAuth(req, res, next) {
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
       if (err) {
         return res.status(403).json({
-          error: '登入錯誤',
+          error: '登入錯誤！',
         });
       } else {
         resolve(payload);
@@ -65,7 +67,7 @@ async function isAuth(req, res, next) {
     const [rows] = await pool.execute(sql, [token.id]);
     if (!rows.length) {
       return res.status(403).json({
-        error: '登入錯誤',
+        error: '登入錯誤！',
       });
     }
     req.user = rows[0];
