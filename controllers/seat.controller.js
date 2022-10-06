@@ -12,102 +12,109 @@ const { seatStatusId } = require('../configs');
 const ticketLimitPerSession = 4;
 
 async function getSeats(req, res) {
-  const sessionId = req.body.sessionId;
-  if (!sessionId) {
-    return res.status(400).json({
-      error: 'Please provide session ID.',
-    });
-  }
-
-  const areaId = req.body.areaId;
-  if (!areaId) {
-    return res.status(400).json({
-      error: 'Please provide area ID.',
-    });
-  }
-
-  const seats = await getSeatsByAreaId(sessionId, areaId);
-  if (!seats.length) {
-    return res.status(400).json({
-      error: `Please provide valid session ID(${sessionId}) & area ID(${areaId}).`,
-    });
-  }
-
-  let map = {};
-  seats.forEach((seat) => {
-    if (!map[seat.row]) {
-      map[seat.row] = [];
+  try {
+    const sessionId = req.body.sessionId;
+    if (!sessionId) {
+      return res.status(400).json({
+        error: 'Please provide session ID.',
+      });
     }
-    map[seat.row].push(seat);
-  });
-  const data = Object.values(map);
-  return res.status(200).json(data);
+
+    const areaId = req.body.areaId;
+    if (!areaId) {
+      return res.status(400).json({
+        error: 'Please provide area ID.',
+      });
+    }
+
+    const seats = await getSeatsByAreaId(sessionId, areaId);
+    if (!seats.length) {
+      return res.status(400).json({
+        error: `Please provide valid session ID(${sessionId}) & area ID(${areaId}).`,
+      });
+    }
+
+    let map = {};
+    seats.forEach((seat) => {
+      if (!map[seat.row]) {
+        map[seat.row] = [];
+      }
+      map[seat.row].push(seat);
+    });
+    const data = Object.values(map);
+    return res.status(200).json(data);
+  } catch (err) {
+    console.log('err', err);
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
+    });
+  }
 }
 
 async function lockSeats(req, res) {
-  const sessionId = req.body.sessionId;
-  if (!sessionId) {
-    return res.status(400).json({
-      error: 'Please provide session ID.',
-    });
-  }
-
-  const sessionExist = await checkSessionExist(sessionId);
-  if (!sessionExist) {
-    return res.status(400).json({
-      error: 'Please provide a valid session ID.',
-    });
-  }
-
-  const areaId = req.body.areaId;
-  if (!areaId) {
-    return res.status(400).json({
-      error: 'Please provide an area ID.',
-    });
-  }
-
-  const areaExist = await checkAreaExist(areaId);
-  if (!areaExist) {
-    return res.status(400).json({
-      error: 'Please provide a valid area ID.',
-    });
-  }
-
-  const seats = req.body.tickets;
-  if (seats.length > 4) {
-    return res.status(400).json({
-      error: 'You can only buy 4 tickets per session.',
-    });
-  }
-
-  // console.log(sessionId, areaId, seats);
-  let seatIds = [];
-  for (const seat of seats) {
-    const seatId = await getSeatId(seat.row, seat.column, areaId);
-    if (!seatId) {
+  try {
+    const sessionId = req.body.sessionId;
+    if (!sessionId) {
       return res.status(400).json({
-        error: `Can not find row ${seat.row}, column ${seat.column} in area ${areaId}`,
+        error: 'Please provide session ID.',
       });
     }
-    seatIds.push(seatId);
-  }
 
-  let count = await getUserBoughtTicketCount(req.user.id, sessionId);
-  console.log('count', count);
+    const sessionExist = await checkSessionExist(sessionId);
+    if (!sessionExist) {
+      return res.status(400).json({
+        error: 'Please provide a valid session ID.',
+      });
+    }
 
-  if (count === ticketLimitPerSession) {
-    return res.status(400).json({
-      error: `此帳號已購買${ticketLimitPerSession}張門票！`,
-    });
-  }
+    const areaId = req.body.areaId;
+    if (!areaId) {
+      return res.status(400).json({
+        error: 'Please provide an area ID.',
+      });
+    }
 
-  if (seatIds.length > 4 - count) {
-    return res.status(400).json({
-      error: `此帳號只能再購買${4 - count}張門票！`,
-    });
-  }
+    const areaExist = await checkAreaExist(areaId);
+    if (!areaExist) {
+      return res.status(400).json({
+        error: 'Please provide a valid area ID.',
+      });
+    }
 
-  try {
+    const seats = req.body.tickets;
+    if (seats.length > 4) {
+      return res.status(400).json({
+        error: 'You can only buy 4 tickets per session.',
+      });
+    }
+
+    // console.log(sessionId, areaId, seats);
+    let seatIds = [];
+    for (const seat of seats) {
+      const seatId = await getSeatId(seat.row, seat.column, areaId);
+      if (!seatId) {
+        return res.status(400).json({
+          error: `Can not find row ${seat.row}, column ${seat.column} in area ${areaId}`,
+        });
+      }
+      seatIds.push(seatId);
+    }
+
+    let count = await getUserBoughtTicketCount(req.user.id, sessionId);
+    console.log('count', count);
+
+    if (count === ticketLimitPerSession) {
+      return res.status(400).json({
+        error: `此帳號已購買${ticketLimitPerSession}張門票！`,
+      });
+    }
+
+    if (seatIds.length > 4 - count) {
+      return res.status(400).json({
+        error: `此帳號只能再購買${4 - count}張門票！`,
+      });
+    }
+
     const seatStatus = await getSeatsStatus(sessionId, seatIds);
     // console.log('seatStatus', seatStatus);
     for (let seat of seatStatus) {
@@ -145,8 +152,8 @@ async function lockSeats(req, res) {
     return res.status(200).json(data);
   } catch (err) {
     console.log('err', err);
-    return res.status(200).json({
-      error: 'MySQL error',
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 }

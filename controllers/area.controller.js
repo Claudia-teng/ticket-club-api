@@ -2,26 +2,33 @@ require('dotenv').config();
 const { getSeatPicture, getAreasBySessionId, getEmptySeatsByArea } = require('../models/area.model');
 
 async function getAreas(req, res) {
-  const sessionId = req.params.id;
-  if (!sessionId) {
-    return res.status(400).json({
-      error: 'Please provide session ID.',
+  try {
+    const sessionId = req.params.id;
+    if (!sessionId) {
+      return res.status(400).json({
+        error: 'Please provide session ID.',
+      });
+    }
+
+    let areas = await getAreasBySessionId(sessionId);
+    if (!areas.length) {
+      return res.status(400).json({
+        error: 'Please provide valid session ID.',
+      });
+    }
+
+    areas = await addEmptySeatsInfo(areas, sessionId);
+    areas = orderAreasByPrice(areas);
+
+    let seatPicture = await getSeatPicture(sessionId);
+    areas.seatPicture = `${process.env.SERVER_IMAGE_PATH}/${seatPicture}`;
+    return res.status(200).json(areas);
+  } catch (err) {
+    console.log('err', err);
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
-
-  let areas = await getAreasBySessionId(sessionId);
-  if (!areas.length) {
-    return res.status(400).json({
-      error: 'Please provide valid session ID.',
-    });
-  }
-
-  areas = await addEmptySeatsInfo(areas, sessionId);
-  areas = orderAreasByPrice(areas);
-
-  let seatPicture = await getSeatPicture(sessionId);
-  areas.seatPicture = `${process.env.SERVER_IMAGE_PATH}/${seatPicture}`;
-  return res.status(200).json(areas);
 }
 
 async function addEmptySeatsInfo(areas, sessionId) {

@@ -113,7 +113,7 @@ module.exports = (io) => {
       console.log('err', err);
       await rollback(connection);
       return io.to(socket.id).emit('self select seat', {
-        error: '系統錯誤，請稍後再試',
+        error: '系統錯誤，請稍後再試！',
       });
     } finally {
       connection.release();
@@ -179,7 +179,7 @@ module.exports = (io) => {
     } catch (err) {
       console.log('err', err);
       return io.to(socket.id).emit('unselect seat', {
-        error: '系統錯誤，請稍後再試',
+        error: '系統錯誤，請稍後再試！',
       });
     }
   }

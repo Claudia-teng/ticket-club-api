@@ -66,8 +66,8 @@ async function signup(req, res) {
     });
   } catch (err) {
     console.log('err', err);
-    return res.status(400).json({
-      error: '系統錯誤，請稍後再試',
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 }
@@ -124,8 +124,8 @@ async function signin(req, res) {
     });
   } catch (err) {
     console.log('err', err);
-    return res.status(400).json({
-      error: '系統錯誤，請稍後再試',
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 }
@@ -149,8 +149,8 @@ async function getProfile(req, res) {
     return res.status(200).json(data);
   } catch (err) {
     console.log('err', err);
-    return res.status(400).json({
-      error: '系統錯誤，請稍後再試',
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 }

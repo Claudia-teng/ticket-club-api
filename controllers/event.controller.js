@@ -9,8 +9,8 @@ async function getAllEvents(req, res) {
     return res.status(200).json(events);
   } catch (err) {
     console.log('err', err);
-    return res.status(400).json({
-      error: 'MySQL error.',
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 }
@@ -23,10 +23,17 @@ async function getEventDetail(req, res) {
     });
   }
 
-  const events = await getEventById(eventId);
-  if (!events.length) {
-    return res.status(400).json({
-      error: 'Please provide a valid event ID.',
+  try {
+    const events = await getEventById(eventId);
+    if (!events.length) {
+      return res.status(400).json({
+        error: 'Please provide a valid event ID.',
+      });
+    }
+  } catch (err) {
+    console.log('err', err);
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
     });
   }
 
