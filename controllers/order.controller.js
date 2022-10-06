@@ -48,8 +48,15 @@ async function placeOrder(req, res) {
         });
       }
     }
+  } catch (err) {
+    console.log('err');
+    return res.status(500).json({
+      error: '系統錯誤，請稍後再試！',
+    });
+  }
 
-    const connection = await getPoolConnection();
+  const connection = await getPoolConnection();
+  try {
     await beginTransaction(connection);
     const seats = await getPriceBySeatIds(connection, sessionId, seatIds);
     if (seats.length !== seatIds.length) {
