@@ -20,6 +20,7 @@ io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   try {
     const user = await socketIsAuth(token);
+    if (user instanceof Error) return next(new Error('登入錯誤！'));
     socket.userId = user.id;
     next();
   } catch (err) {

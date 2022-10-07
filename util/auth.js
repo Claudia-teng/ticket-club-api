@@ -13,7 +13,7 @@ async function socketIsAuth(token) {
     user = await new Promise((resolve, reject) => {
       jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
         if (err) {
-          reject('請重新登入！');
+          reject(new Error('請重新登入！'));
         } else {
           resolve(payload);
         }
