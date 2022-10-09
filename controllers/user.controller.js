@@ -193,4 +193,5 @@ module.exports = {
   signin,
   signup,
   getProfile,
+  organizeDetailByOrderId,
 };

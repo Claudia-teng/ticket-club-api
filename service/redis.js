@@ -39,14 +39,6 @@ const pubClient = new Redis.Cluster([
 
 const subClient = pubClient.duplicate();
 
-pubClient.on('connect', () => {
-  console.log('Redis connected!');
-});
-
-pubClient.on('error', (error) => {
-  console.log('Redis connection error:', error);
-});
-
 module.exports = {
   pubClient,
   subClient,
