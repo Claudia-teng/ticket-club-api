@@ -17,7 +17,7 @@ const { checkSessionExist, checkAreaExist } = require('../../util/utils');
 const { seatStatusId } = require('../../configs');
 const ticketLimitPerSession = 4;
 const { pubClient } = require('../../service/redis');
-const limit = 100000;
+const limit = 3;
 let chatroom;
 
 module.exports = (io) => {
