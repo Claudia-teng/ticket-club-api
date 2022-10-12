@@ -9,7 +9,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 const { socketIsAuth } = require('./util/auth');
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5000', 'https://claudia-teng.com'],
+    origin: ['http://localhost:5000', 'https://claudia-teng.com', 'https://ticketclub.live'],
   },
 });
 io.adapter(createAdapter(pubClient, subClient));
