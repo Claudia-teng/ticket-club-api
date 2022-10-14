@@ -7,11 +7,18 @@ TICKETCLUB is a concert ticket-selling website that provides **queuing system**.
 - Backend Repo: https://github.com/Claudia-teng/ticket-club
 - Demo & Explanation Video: https://drive.google.com/file/d/14Ymsu-p7zLsXRVPCJwRd5a7_nN0MhaTr/view
 
+## Login
+
+- email: demo@test.com
+- password: demodemo
+
+Each account can only purchase 4 tickets per show. If the account reaches the limit, you can sign up a new account to purchase again.
+
 ## Tech Stack
 
 - Backend: node.js, Express, Socket.IO
 - Database: RDS(MySQL), Redis
-- Cloud Service: EC2, Elastic Load Balance, Auto Scaling, CloudWatch EventBridge, Lambda
+- Cloud Service: EC2, S3, CloudFront, Elastic Load Balance, Auto Scaling, CloudWatch EventBridge, Lambda
 - CD: GitHub Action, Docker, Code Deploy
 
 ## Architecture Diagram
@@ -43,54 +50,58 @@ Tools: Socket.IO, MySQL Lock
 Tool: Redis (List & Hash)
 
 1. Use a list to record the order of people entering ticket selling page, and Hash to record the timestamp of each user entering the ticket selling page.
-2. If the number of people inside the page reaches the limit, another ist will record the queuing order.
+2. If the number of people inside the page reaches the limit, another list will record the queuing order.
 3. There is a 10-minute time limit for ticket purchases process. After 10 minutes, that user will be kicked out from the page.
 4. First user in the queuing list will be navigated to ticket selling page.
 
 For example:
 
-1. If the limit of visiting ticket selling page is set to 3...
-2. User 1 arrived, successfully get into ticket selling page.
-3. User 2 arrived, successfully get into ticket selling page.
-4. User 3 arrived, successfully get into ticket selling page.
-5. User 4 arrived, failed to get into ticket selling page, placed in the 1th in queue.
-6. User 5 arrived, failed to get into ticket selling page, placed in the 2nd in queue.
-7. User 6 arrived, failed to get into ticket selling page, placed in the 3nd in queue.
-8. User 7 arrived, failed to get into ticket selling page, placed in the 4th in queue.
+If the limit of visiting ticket selling page is set to 3...
+
+1. User 1 arrived, successfully get into ticket selling page.
+2. User 2 arrived, successfully get into ticket selling page.
+3. User 3 arrived, successfully get into ticket selling page.
+4. User 4 arrived, failed to get into ticket selling page, placed in the 1th in queue.
+5. User 5 arrived, failed to get into ticket selling page, placed in the 2nd in queue.
+6. User 6 arrived, failed to get into ticket selling page, placed in the 3nd in queue.
 
 **Calculate estimated waiting time**
 
 1. User 4 need to wait 1 person, and it's waiting time is (10 minutes - User 1's timestamp).
 2. User 5 need to wait 2 people, and it's waiting time is (10 minutes - User 2's timestamp).
 3. User 6 need to wait 3 people, and it's waiting time is (10 minutes - User 3's timestamp).
-4. User 7 need to wait 4 people, and it's waiting time is (10 minutes - User 1's timestamp) + 10 minutes.
 
 **Senario 1: User 1 completed a purchase**
 
-1. Let first user in the queue (User 4) to get into the page.
+1. Let the first user in queue (User 4) to get into the page.
 2. Get all users in queue, and update their waiting information.
-3. Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
-4. Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
+- Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
+- Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
 
 **Senario 2: User 4 left the queue**
 
-1. Find Users queuing behind User 4, and update their waiting information
-2. Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
-3. Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
+1. Find Users queuing behind User 4, and update their waiting information.
+- Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
+- Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
 **Senario 3: User 2 left the page without buying**
 
-1. Let first user in the queue (User 4) to get into the page.
+1. Let the first user in queue (User 4) to get into the page.
 2. Get all users in queue, and update their waiting information.
-3. Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
-4. Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
+- Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
+- Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
 ## Load test
 
-Concert ticket selling website must be capable of handling high traffic. Thus I tried both horizontal and vertical scaling and compare two methods scaling results & payments.
+Concert ticket selling website must be capable of handling high traffic. I tried both horizontal and vertical scaling and compare two scaling results & payments.
 
 ### Horizontal Scaling
 
 ### Vertical Scaling
 
-To conclude, in this case vertical scaling has a better performance with a lower cost.
+Conclusion: In this case vertical scaling has a better performance with a lower cost.
+
+### Estimated Time
+
+### Lock Seat
+
