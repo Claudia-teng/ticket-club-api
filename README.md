@@ -69,9 +69,11 @@ Tool: Redis (List & Hash)
 1. Use List to record the order of people entering ticket selling page.
 2. Use Hash to record the timestamp of each user entering the ticket selling page.
 3. If the number of people inside the page reaches the limit, another list will record the queuing order.
-4. There is a 10-minute time limit for purchasing process. Use index to find the corresponging user that each queuing user should wait and calculate esmited waiting time.
+4. There is a 10-minute time limit for purchasing process. Use index to find the corresponding user that each queuing user should wait and calculate estimated waiting time.
 
 For example:
+
+<img width="80%" alt="update-seat-status" src="./public/assets/explain.gif">
 
 If the limit of visiting ticket selling page is set to 3...
 
@@ -98,7 +100,7 @@ If the limit of visiting ticket selling page is set to 3...
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 - Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
 
-**Senario 2: User 4 left the queue**
+**Scenario 2: User 4 left the queue**
 
 <img width="80%" alt="Scenario 2" src="./public/assets/scenario2.gif">
 
@@ -107,7 +109,7 @@ If the limit of visiting ticket selling page is set to 3...
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
 - Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
-**Senario 3: User 2 left the page without buying**
+**Scenario 3: User 2 left the page without buying**
 
 <img width="80%" alt="Scenario 3" src="./public/assets/scenario3.gif">
 
@@ -141,4 +143,4 @@ By upgrading the instance type from t3.micro to t3.small, the max connections ha
 
 Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
 
-<img width="839" alt="scaling-comparision" src="https://user-images.githubusercontent.com/55543282/195976210-0a1ff6df-7086-4e3f-b611-79ffa32e5d59.png">
+<img width="839" alt="scaling-comparison" src="https://user-images.githubusercontent.com/55543282/195976210-0a1ff6df-7086-4e3f-b611-79ffa32e5d59.png">
