@@ -34,7 +34,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Architecture Diagram
 
-<img alt="architecture-diagram" src="./public/assets/readme/architecture-diagram.png">
+<img alt="architecture-diagram" src="./public/readme/architecture-diagram.png">
 
 ## Features
 
@@ -47,7 +47,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Update Seat Status
 
-<img width="100%" alt="update-seat-status" src="./public/assets/readme/update-seat.gif">
+<img width="100%" alt="update-seat-status" src="./public/readme/update-seat.gif">
 
 Tools: Socket.IO, MySQL Lock
 
@@ -59,13 +59,13 @@ Tools: Socket.IO, MySQL Lock
 - Limit the number of people visiting the event selling page to prevent server crashes.
 - Apply "queuing psychology" and calculate the estimated waiting time for each user by using **WebSocket** and **Redis** List & Hash.
 
-<img width="100%" alt="queue" src="./public/assets/readme/queue.gif">
+<img width="100%" alt="queue" src="./public/readme/queue.gif">
 
 ### How do I implement the queuing system?
 
 Tool: Redis (List & Hash)
 
-<img alt="redis" src="./public/assets/readme/redis.png">
+<img alt="redis" src="./public/readme/redis.png">
 
 1. Use List to record the order of people entering ticket selling page.
 2. Use Hash to record the timestamp of each user entering the ticket selling page.
@@ -74,7 +74,7 @@ Tool: Redis (List & Hash)
 
 For example:
 
-<img width="50%" alt="explain" src="./public/assets/readme/explain.gif">
+<img width="50%" alt="explain" src="./public/readme/explain.gif">
 
 If the limit of visiting the ticket selling page is set to 3...
 
@@ -93,7 +93,7 @@ If the limit of visiting the ticket selling page is set to 3...
 
 **Scenario 1: User 1 completed a purchase**
 
-<img width="50%" alt="Scenario 1" src="./public/assets/readme/scenario1.gif">
+<img width="50%" alt="Scenario 1" src="./public/readme/scenario1.gif">
 
 1. Let the first user in queue (User 4) get into the page.
 2. Update waiting information for all users in queue.
@@ -103,7 +103,7 @@ If the limit of visiting the ticket selling page is set to 3...
 
 **Scenario 2: User 4 left the queue**
 
-<img width="50%" alt="Scenario 2" src="./public/assets/readme/scenario2.gif">
+<img width="50%" alt="Scenario 2" src="./public/readme/scenario2.gif">
 
 1. Find Users queuing behind User 4, and update their waiting information.
 
@@ -112,7 +112,7 @@ If the limit of visiting the ticket selling page is set to 3...
 
 **Scenario 3: User 2 left the page without buying**
 
-<img width="50%" alt="Scenario 3" src="./public/assets/readme/scenario3.gif">
+<img width="50%" alt="Scenario 3" src="./public/readme/scenario3.gif">
 
 1. Let the first user in queue (User 4) get into the page.
 2. Update waiting information for all users in queue.
@@ -132,16 +132,16 @@ Code: https://github.com/Claudia-teng/ticket-club-load-test/blob/main/connection
 
 I used t3.micro to observe the connection growth as more instances were added. The connections have increased but did not exactly double from 30,000 to 60,00 if a new instance was added.
 
-<img alt="horizontal-scaling" src="./public/assets/readme/horizontal-scaling.png">
+<img alt="horizontal-scaling" src="./public/readme/horizontal-scaling.png">
 
 ### Vertical Scaling
 
 By upgrading the instance type from t3.micro to t3.small, the max connections have increased more than one time from 30,000 to 80,000.
 
-<img alt="vertical-scaling" src="./public/assets/readme/vertical-scaling.png">
+<img alt="vertical-scaling" src="./public/readme/vertical-scaling.png">
 
 ### Comparison
 
 Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
 
-<img alt="scaling-comparison" src="./public/assets/readme/scaling-comparison.png">
+<img alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
