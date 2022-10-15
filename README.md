@@ -7,7 +7,7 @@ TICKETCLUB is a concert ticket-selling website that provides **queuing system**.
 - Backend Repo: https://github.com/Claudia-teng/ticket-club
 - Demo & Explanation Video: https://drive.google.com/file/d/14Ymsu-p7zLsXRVPCJwRd5a7_nN0MhaTr/view
 
-# Content
+## Contents
 
 - [Login](#login)
 - [Tech Stack](#tech-stack)
@@ -22,10 +22,11 @@ TICKETCLUB is a concert ticket-selling website that provides **queuing system**.
 - email: demo@test.com
 - password: demodemo
 
-Each account can only purchase 4 tickets per show. If the account reaches the limit, you can sign up a new account to purchase again.
+Each account can only purchase 4 tickets per show. If the account reaches the limit, you can sign up for a new account to purchase again.
 
 ## Tech Stack
 
+- Frontend: React
 - Backend: node.js, Express, Socket.IO
 - Database: RDS(MySQL), Redis
 - Cloud Service: EC2, S3, CloudFront, Elastic Load Balance, Auto Scaling, CloudWatch EventBridge, Lambda
@@ -46,11 +47,11 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Update Seat Status
 
-<img width="80%" alt="update-seat-status" src="./public/assets/readme/update-seats.gif">
+<img width="100%" alt="update-seat-status" src="./public/assets/readme/update-seat.gif">
 
 Tools: Socket.IO, MySQL Lock
 
-- Update seat status immediately to avoid two users getting the same seat at the same time as mush as possible
+- Update seat status immediately to avoid two users getting the same seat at the same time as much as possible
 - Use MySQL lock to ensure every seat can only be successfully selected by one user.
 
 ## Queuing System
@@ -58,9 +59,9 @@ Tools: Socket.IO, MySQL Lock
 - Limit the number of people visiting the event selling page to prevent server crashes.
 - Apply "queuing psychology" and calculate the estimated waiting time for each user by using **WebSocket** and **Redis** List & Hash.
 
-<img width="80%" alt="update-seat-status" src="./public/assets/readme/queue.gif">
+<img width="100%" alt="queue" src="./public/assets/readme/queue.gif">
 
-### How I implement queuing system?
+### How do I implement the queuing system?
 
 Tool: Redis (List & Hash)
 
@@ -69,49 +70,51 @@ Tool: Redis (List & Hash)
 1. Use List to record the order of people entering ticket selling page.
 2. Use Hash to record the timestamp of each user entering the ticket selling page.
 3. If the number of people inside the page reaches the limit, another list will record the queuing order.
-4. There is a 10-minute time limit for purchasing process. Use index to find the corresponging user that each queuing user should wait and calculate esmited waiting time.
+4. There is a 10-minute time limit for the purchasing process. Use the index to find the corresponding user that each queuing user should wait for and calculate the estimated waiting time.
 
 For example:
 
-If the limit of visiting ticket selling page is set to 3...
+<img width="50%" alt="explain" src="./public/assets/readme/explain.gif">
 
-1. User 1 arrived, successfully get into ticket selling page.
-2. User 2 arrived, successfully get into ticket selling page.
-3. User 3 arrived, successfully get into ticket selling page.
-4. User 4 arrived, failed to get into ticket selling page, placed in the 1th in queue.
-5. User 5 arrived, failed to get into ticket selling page, placed in the 2nd in queue.
-6. User 6 arrived, failed to get into ticket selling page, placed in the 3nd in queue.
+If the limit of visiting the ticket selling page is set to 3...
+
+1. User 1 arrived, successfully get into the ticket selling page.
+2. User 2 arrived, successfully get into the ticket selling page.
+3. User 3 arrived, successfully get into the ticket selling page.
+4. User 4 arrived, failed to get into the ticket selling page, placed 1st in the queue.
+5. User 5 arrived, failed to get into the ticket selling page, placed 2nd in the queue.
+6. User 6 arrived, failed to get into the ticket selling page, placed 3nd in the queue.
 
 **Calculate estimated waiting time**
 
-1. User 4 need to wait for 1 person, and it's waiting time is (10 minutes - User 1's timestamp) + 10 seconds buffer.
-2. User 5 need to wait for 2 people, and it's waiting time is (10 minutes - User 2's timestamp) + 10 seconds buffer.
-3. User 6 need to wait for 3 people, and it's waiting time is (10 minutes - User 3's timestamp) + 10 seconds buffer.
+1. User 4 needs to wait for 1 person, and its waiting time is (10 minutes - User 1's timestamp) + 10 seconds buffer.
+2. User 5 needs to wait for 2 people, and its waiting time is (10 minutes - User 2's timestamp) + 10 seconds buffer.
+3. User 6 needs to wait for 3 people, and its waiting time is (10 minutes - User 3's timestamp) + 10 seconds buffer.
 
 **Scenario 1: User 1 completed a purchase**
 
-<img width="80%" alt="Scenario 1" src="./public/assets/readme/scenario1.gif">
+<img width="50%" alt="Scenario 1" src="./public/assets/readme/scenario1.gif">
 
-1. Let the first user in queue (User 4) to get into the page.
+1. Let the first user in queue (User 4) get into the page.
 2. Update waiting information for all users in queue.
 
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
-- Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
+- Update User 6's waiting info: wait for 2 people, waiting time is (10 minutes - User 3's timestamp).
 
-**Senario 2: User 4 left the queue**
+**Scenario 2: User 4 left the queue**
 
-<img width="80%" alt="Scenario 2" src="./public/assets/readme/scenario2.gif">
+<img width="50%" alt="Scenario 2" src="./public/assets/readme/scenario2.gif">
 
 1. Find Users queuing behind User 4, and update their waiting information.
 
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
 - Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
-**Senario 3: User 2 left the page without buying**
+**Scenario 3: User 2 left the page without buying**
 
-<img width="80%" alt="Scenario 3" src="./public/assets/readme/scenario3.gif">
+<img width="50%" alt="Scenario 3" src="./public/assets/readme/scenario3.gif">
 
-1. Let the first user in queue (User 4) to get into the page.
+1. Let the first user in queue (User 4) get into the page.
 2. Update waiting information for all users in queue.
 
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
@@ -121,19 +124,19 @@ If the limit of visiting ticket selling page is set to 3...
 
 Concert ticket selling website must be capable of handling high traffic.
 
-I use websocket to confirm if a user is still in page or in queue, so I implemented a load test to check the max socket connections with both horizontal and vertical scaling and compared two scaling results & costs.
+I use WebSocket to confirm if a user is still on the page or in the queue, so I implemented a load test to check the max socket connections with both horizontal and vertical scaling and compared two scaling results & costs.
 
 Code: https://github.com/Claudia-teng/ticket-club-load-test/blob/main/connection-time.js
 
 ### Horizontal Scaling
 
-I used t3.micro to observe the connection growth as more instances added. The connections have increased but the did not exactly doubled from 30,000 to 60,00 if a new instance added.
+I used t3.micro to observe the connection growth as more instances were added. The connections have increased but did not exactly double from 30,000 to 60,00 if a new instance was added.
 
 <img alt="horizontal-scaling" src="./public/assets/readme/horizontal-scaling.png">
 
 ### Vertical Scaling
 
-By upgrading the instance type from t3.micro to t3.small, the max connections has increased more than one time from 30,000 to 80,000.
+By upgrading the instance type from t3.micro to t3.small, the max connections have increased more than one time from 30,000 to 80,000.
 
 <img alt="vertical-scaling" src="./public/assets/readme/vertical-scaling.png">
 
