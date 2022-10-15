@@ -26,6 +26,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Tech Stack
 
+- Frontend: React
 - Backend: node.js, Express, Socket.IO
 - Database: RDS(MySQL), Redis
 - Cloud Service: EC2, S3, CloudFront, Elastic Load Balance, Auto Scaling, CloudWatch EventBridge, Lambda
