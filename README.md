@@ -46,7 +46,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Update Seat Status
 
-<img width="90%" alt="update-seat-status" src="./public/assets/update-seat.gif">
+<img width="100%" alt="update-seat-status" src="./public/assets/update-seat.gif">
 
 Tools: Socket.IO, MySQL Lock
 
@@ -58,7 +58,7 @@ Tools: Socket.IO, MySQL Lock
 - Limit the number of people visiting the event selling page to prevent server crashes.
 - Apply "queuing psychology" and calculate the estimated waiting time for each user by using **WebSocket** and **Redis** List & Hash.
 
-<img width="90%" alt="update-seat-status" src="./public/assets/queue.gif">
+<img width="100%" alt="update-seat-status" src="./public/assets/queue.gif">
 
 ### How I implement queuing system?
 
@@ -73,7 +73,7 @@ Tool: Redis (List & Hash)
 
 For example:
 
-<img width="80%" alt="update-seat-status" src="./public/assets/explain.gif">
+<img width="50%" alt="update-seat-status" src="./public/assets/explain.gif">
 
 If the limit of visiting ticket selling page is set to 3...
 
