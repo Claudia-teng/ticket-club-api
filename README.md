@@ -7,7 +7,7 @@ TICKETCLUB is a concert ticket-selling website that provides **queuing system**.
 - Backend Repo: https://github.com/Claudia-teng/ticket-club
 - Demo & Explanation Video: https://drive.google.com/file/d/14Ymsu-p7zLsXRVPCJwRd5a7_nN0MhaTr/view
 
-# Content
+## Contents
 
 - [Login](#login)
 - [Tech Stack](#tech-stack)
