@@ -46,7 +46,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Update Seat Status
 
-<img width="80%" alt="update-seat-status" src="./public/assets/update-seats.gif">
+<img width="90%" alt="update-seat-status" src="./public/assets/update-seat.gif">
 
 Tools: Socket.IO, MySQL Lock
 
@@ -58,7 +58,7 @@ Tools: Socket.IO, MySQL Lock
 - Limit the number of people visiting the event selling page to prevent server crashes.
 - Apply "queuing psychology" and calculate the estimated waiting time for each user by using **WebSocket** and **Redis** List & Hash.
 
-<img width="80%" alt="update-seat-status" src="./public/assets/queue.gif">
+<img width="90%" alt="update-seat-status" src="./public/assets/queue.gif">
 
 ### How I implement queuing system?
 
@@ -92,7 +92,7 @@ If the limit of visiting ticket selling page is set to 3...
 
 **Scenario 1: User 1 completed a purchase**
 
-<img width="80%" alt="Scenario 1" src="./public/assets/scenario1.gif">
+<img width="50%" alt="Scenario 1" src="./public/assets/scenario1.gif">
 
 1. Let the first user in queue (User 4) to get into the page.
 2. Update waiting information for all users in queue.
@@ -102,7 +102,7 @@ If the limit of visiting ticket selling page is set to 3...
 
 **Scenario 2: User 4 left the queue**
 
-<img width="80%" alt="Scenario 2" src="./public/assets/scenario2.gif">
+<img width="50%" alt="Scenario 2" src="./public/assets/scenario2.gif">
 
 1. Find Users queuing behind User 4, and update their waiting information.
 
@@ -111,7 +111,7 @@ If the limit of visiting ticket selling page is set to 3...
 
 **Scenario 3: User 2 left the page without buying**
 
-<img width="80%" alt="Scenario 3" src="./public/assets/scenario3.gif">
+<img width="50%" alt="Scenario 3" src="./public/assets/scenario3.gif">
 
 1. Let the first user in queue (User 4) to get into the page.
 2. Update waiting information for all users in queue.
