@@ -46,6 +46,8 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Update Seat Status
 
+<img width="80%" alt="update-seat-status" src="./public/assets/update-seats.gif">
+
 Tools: Socket.IO, MySQL Lock
 
 - Update seat status immediately to avoid two users getting the same seat at the same time as mush as possible
@@ -55,6 +57,8 @@ Tools: Socket.IO, MySQL Lock
 
 - Limit the number of people visiting the event selling page to prevent server crashes.
 - Apply "queuing psychology" and calculate the estimated waiting time for each user by using **WebSocket** and **Redis** List & Hash.
+
+<img width="80%" alt="update-seat-status" src="./public/assets/queue.gif">
 
 ### How I implement queuing system?
 
@@ -80,27 +84,36 @@ If the limit of visiting ticket selling page is set to 3...
 
 **Calculate estimated waiting time**
 
-1. User 4 need to wait for 1 person, and it's waiting time is (10 minutes - User 1's timestamp).
-2. User 5 need to wait for 2 people, and it's waiting time is (10 minutes - User 2's timestamp).
-3. User 6 need to wait for 3 people, and it's waiting time is (10 minutes - User 3's timestamp).
+1. User 4 need to wait for 1 person, and it's waiting time is (10 minutes - User 1's timestamp) + 10 seconds buffer.
+2. User 5 need to wait for 2 people, and it's waiting time is (10 minutes - User 2's timestamp) + 10 seconds buffer.
+3. User 6 need to wait for 3 people, and it's waiting time is (10 minutes - User 3's timestamp) + 10 seconds buffer.
 
-**Senario 1: User 1 completed a purchase**
+**Scenario 1: User 1 completed a purchase**
+
+<img width="80%" alt="Scenario 1" src="./public/assets/scenario1.gif">
 
 1. Let the first user in queue (User 4) to get into the page.
 2. Update waiting information for all users in queue.
+
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 - Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
 
 **Senario 2: User 4 left the queue**
 
+<img width="80%" alt="Scenario 2" src="./public/assets/scenario2.gif">
+
 1. Find Users queuing behind User 4, and update their waiting information.
+
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
 - Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
 **Senario 3: User 2 left the page without buying**
 
+<img width="80%" alt="Scenario 3" src="./public/assets/scenario3.gif">
+
 1. Let the first user in queue (User 4) to get into the page.
 2. Update waiting information for all users in queue.
+
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
 - Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
@@ -129,4 +142,3 @@ By upgrading the instance type from t3.micro to t3.small, the max connections ha
 Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
 
 <img width="839" alt="scaling-comparision" src="https://user-images.githubusercontent.com/55543282/195976210-0a1ff6df-7086-4e3f-b611-79ffa32e5d59.png">
-
