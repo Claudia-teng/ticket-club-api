@@ -34,7 +34,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Architecture Diagram
 
-<img alt="architecture-diagram" src="./public/readme/architecture-diagram.png">
+<img width="60%" alt="architecture-diagram" src="./public/readme/architecture-diagram.png">
 
 ## Features
 
@@ -65,7 +65,7 @@ Tools: Socket.IO, MySQL Lock
 
 Tool: Redis (List & Hash)
 
-<img alt="redis" src="./public/readme/redis.png">
+<img width="60%" alt="redis" src="./public/readme/redis.png">
 
 1. Use List to record the order of people entering ticket selling page.
 2. Use Hash to record the timestamp of each user entering the ticket selling page.
@@ -132,16 +132,16 @@ Code: https://github.com/Claudia-teng/ticket-club-load-test/blob/main/connection
 
 I used t3.micro to observe the connection growth as more instances were added. The connections have increased but did not exactly double from 30,000 to 60,00 if a new instance was added.
 
-<img alt="horizontal-scaling" src="./public/readme/horizontal-scaling.png">
+<img width="60%" alt="horizontal-scaling" src="./public/readme/horizontal-scaling.png">
 
 ### Vertical Scaling
 
 By upgrading the instance type from t3.micro to t3.small, the max connections have increased more than one time from 30,000 to 80,000.
 
-<img alt="vertical-scaling" src="./public/readme/vertical-scaling.png">
+<img width="60%" alt="vertical-scaling" src="./public/readme/vertical-scaling.png">
 
 ### Comparison
 
 Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
 
-<img alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
+<img width="80%" alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
