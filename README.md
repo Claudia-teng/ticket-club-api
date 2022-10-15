@@ -7,6 +7,16 @@ TICKETCLUB is a concert ticket-selling website that provides **queuing system**.
 - Backend Repo: https://github.com/Claudia-teng/ticket-club
 - Demo & Explanation Video: https://drive.google.com/file/d/14Ymsu-p7zLsXRVPCJwRd5a7_nN0MhaTr/view
 
+# Content
+
+- [Login](#login)
+- [Tech Stack](#tech-stack)
+- [Architecture Diagram](#architecture-diagram)
+- [Features](#features)
+- [Update Seat Status](#update-seat-status)
+- [Queuing System](#queuing-system)
+- [Load Test](#load-test)
+
 ## Login
 
 - email: demo@test.com
@@ -23,6 +33,8 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 
 ## Architecture Diagram
 
+<img width="514" alt="architecture-diagram" src="https://user-images.githubusercontent.com/55543282/195979844-b6f0dbb4-1b5d-4e73-83c0-ebcae0c1990e.png">
+
 ## Features
 
 - Limit the number of people visiting the event selling page to prevent server crashes.
@@ -37,7 +49,6 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 Tools: Socket.IO, MySQL Lock
 
 - Update seat status immediately to avoid two users getting the same seat at the same time as mush as possible
-- Reduce race conditions to avoid affecting database performance
 - Use MySQL lock to ensure every seat can only be successfully selected by one user.
 
 ## Queuing System
@@ -49,10 +60,12 @@ Tools: Socket.IO, MySQL Lock
 
 Tool: Redis (List & Hash)
 
-1. Use a list to record the order of people entering ticket selling page, and Hash to record the timestamp of each user entering the ticket selling page.
-2. If the number of people inside the page reaches the limit, another list will record the queuing order.
-3. There is a 10-minute time limit for ticket purchases process. After 10 minutes, that user will be kicked out from the page.
-4. First user in the queuing list will be navigated to ticket selling page.
+<img width="590" alt="Screen Shot 2022-10-15 at 5 20 52 PM" src="https://user-images.githubusercontent.com/55543282/195979091-0e99eafc-7d44-4781-ba40-15f7e09fd1f6.png">
+
+1. Use List to record the order of people entering ticket selling page.
+2. Use Hash to record the timestamp of each user entering the ticket selling page.
+3. If the number of people inside the page reaches the limit, another list will record the queuing order.
+4. There is a 10-minute time limit for purchasing process. Use index to find the corresponging user that each queuing user should wait and calculate esmited waiting time.
 
 For example:
 
@@ -67,14 +80,14 @@ If the limit of visiting ticket selling page is set to 3...
 
 **Calculate estimated waiting time**
 
-1. User 4 need to wait 1 person, and it's waiting time is (10 minutes - User 1's timestamp).
-2. User 5 need to wait 2 people, and it's waiting time is (10 minutes - User 2's timestamp).
-3. User 6 need to wait 3 people, and it's waiting time is (10 minutes - User 3's timestamp).
+1. User 4 need to wait for 1 person, and it's waiting time is (10 minutes - User 1's timestamp).
+2. User 5 need to wait for 2 people, and it's waiting time is (10 minutes - User 2's timestamp).
+3. User 6 need to wait for 3 people, and it's waiting time is (10 minutes - User 3's timestamp).
 
 **Senario 1: User 1 completed a purchase**
 
 1. Let the first user in queue (User 4) to get into the page.
-2. Get all users in queue, and update their waiting information.
+2. Update waiting information for all users in queue.
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 - Update User 6's waiting info: wait for 2 person, waiting time is (10 minutes - User 3's timestamp).
 
@@ -87,21 +100,33 @@ If the limit of visiting ticket selling page is set to 3...
 **Senario 3: User 2 left the page without buying**
 
 1. Let the first user in queue (User 4) to get into the page.
-2. Get all users in queue, and update their waiting information.
+2. Update waiting information for all users in queue.
 - Update User 5's waiting info: wait for 1 person, waiting time is (10 minutes - User 1's timestamp).
 - Update User 6's waiting info: wait for 1 person, waiting time is (10 minutes - User 2's timestamp).
 
-## Load test
+## Load Test
 
-Concert ticket selling website must be capable of handling high traffic. I tried both horizontal and vertical scaling and compare two scaling results & payments.
+Concert ticket selling website must be capable of handling high traffic.
+
+I use websocket to confirm if a user is still in page or in queue, so I implemented a load test to check the max socket connections with both horizontal and vertical scaling and compared two scaling results & costs.
+
+Code: https://github.com/Claudia-teng/ticket-club-load-test/blob/main/connection-time.js
 
 ### Horizontal Scaling
 
+I used t3.micro to observe the connection growth as more instances added. The connections have increased but the did not exactly doubled from 30,000 to 60,00 if a new instance added.
+
+<img width="590" alt="horizontal-scaling" src="https://user-images.githubusercontent.com/55543282/195976438-b7775a9f-d30a-4a7d-8a75-c27de892cbec.png">
+
 ### Vertical Scaling
 
-Conclusion: In this case vertical scaling has a better performance with a lower cost.
+By upgrading the instance type from t3.micro to t3.small, the max connections has increased more than one time from 30,000 to 80,000.
 
-### Estimated Time
+<img width="590" alt="vertical-scaling" src="https://user-images.githubusercontent.com/55543282/195976139-ba06688f-38f9-48da-8212-61634d54bfc7.png">
 
-### Lock Seat
+### Comparison
+
+Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
+
+<img width="839" alt="scaling-comparision" src="https://user-images.githubusercontent.com/55543282/195976210-0a1ff6df-7086-4e3f-b611-79ffa32e5d59.png">
 
