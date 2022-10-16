@@ -142,6 +142,6 @@ By upgrading the instance type from t3.micro to t3.small, the max connections ha
 
 ### Comparison
 
-Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling has a better performance with a lower cost.
+Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling  with a lower cost.
 
 <img width="80%" alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
