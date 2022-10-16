@@ -130,7 +130,7 @@ Code: https://github.com/Claudia-teng/ticket-club-load-test/blob/main/connection
 
 ### Horizontal Scaling
 
-I used t3.micro to observe the connection growth as more instances were added. The connections have increased but did not exactly double from 30,000 to 60,00 if a new instance was added.
+I used t3.micro to observe the connection growth as more instances were added. The connections have increased but did not exactly double from 30,000 to 60,000 if a new instance was added.
 
 <img width="60%" alt="horizontal-scaling" src="./public/readme/horizontal-scaling.png">
 
