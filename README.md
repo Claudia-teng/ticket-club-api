@@ -146,4 +146,4 @@ Assuming the goal is to provide 80,000 stable socket connections, if the instanc
 
 <img width="80%" alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
 
-However, horizontal scaling with t3.small should also be implemented to verify the comparison of two scaling method, as it might be the poor performance from t3.micro.
+However, horizontal scaling with t3.small should also be implemented to verify the comparison of two scaling methods, as it might be the poor performance from t3.micro.
