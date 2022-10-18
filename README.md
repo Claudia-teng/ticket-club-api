@@ -27,7 +27,7 @@ Each account can only purchase 4 tickets per show. If the account reaches the li
 ## Tech Stack
 
 - Frontend: React
-- Backend: node.js, Express, Socket.IO
+- Backend: Node.js, Express, Socket.IO
 - Database: RDS(MySQL), Redis
 - Cloud Service: EC2, S3, CloudFront, Elastic Load Balance, Auto Scaling, CloudWatch EventBridge, Lambda
 - CD: GitHub Action, Docker, Code Deploy
@@ -67,9 +67,9 @@ Tool: Redis (List & Hash)
 
 <img width="60%" alt="redis" src="./public/readme/redis.png">
 
-1. Use List to record the order of people entering ticket selling page.
-2. Use Hash to record the timestamp of each user entering the ticket selling page.
-3. If the number of people inside the page reaches the limit, another list will record the queuing order.
+1. Use `List` to record the order of people entering ticket selling page.
+2. Use `Hash` to record the timestamp of each user entering the ticket selling page.
+3. If the session queue is full, the new arriving requests will enqueue to the waiting queue.
 4. There is a 10-minute time limit for the purchasing process. Use the index to find the corresponding user that each queuing user should wait for and calculate the estimated waiting time.
 
 For example:
@@ -142,6 +142,8 @@ By upgrading the instance type from t3.micro to t3.small, the max connections ha
 
 ### Comparison
 
-Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling  with a lower cost.
+Assuming the goal is to provide 80,000 stable socket connections, if the instances run for 30 days, vertical scaling comes with a lower cost.
 
 <img width="80%" alt="scaling-comparison" src="./public/readme/scaling-comparison.png">
+
+However, horizontal scaling with t3.small should also be implemented to verify the comparison of two scaling method, as it might be the poor performance from t3.micro.
